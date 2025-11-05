@@ -1,253 +1,206 @@
-import { useState, useEffect } from 'react';
-import '../../App.css';
-import { getCookie, Title, post, Toast } from '../../functions';
-import { useNavigate } from 'react-router';
-import TeacherNavbar from '../teacher/teacherNavbar';
-import Toolbar from '../../components/Toolbar';
-
+import { useState, useEffect } from "react";
+import "../../App.css";
+import { getCookie, setTitle, post, Toast } from "../../functions";
+import { useNavigate } from "react-router";
+import TeacherNavbar from "../teacher/teacherNavbar";
+import Toolbar from "../../components/Toolbar";
+import { usePost, useMutatePost } from "../../hooks";
+import { useQueryClient } from "@tanstack/react-query";
 
 const ManageUsers = () => {
-  Title('Gebruikers beheren');
+  setTitle("Gebruikers beheren");
 
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const sessionId = getCookie("sessionId");
 
-  const redirectToPage = (path) => {
-    navigate(path); // Use navigate to go to the specified path
-  };
+  // ✅ Cached query for all users
+  const {
+    data: users,
+    isLoading,
+    error,
+    invalidate: refetchUsers,
+  } = usePost("/allUsers", { sessionId }, "allUsers");
 
-  function handlePw(userid) {
-    document.cookie = 'changePwUser=' + userid;
-    redirectToPage('/beheer/verander-gebruiker-wachtwoord');
-  }
+  // ✅ Mutations for fetching data on demand
+  const { mutateAsync: fetchUser } = useMutatePost("allUsers");
+  const { mutateAsync: fetchMaterial } = useMutatePost("allUsers");
 
+  // ✅ UI states
   const [selectedUser, setSelectedUser] = useState(null);
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [selectedHistory, setSelectedHistory] = useState([]);
+  const [selectedMaterials, setSelectedMaterials] = useState([]);
   const [showAll, setShowAll] = useState(true);
-  const [sort, setSort] = useState('name');
-  const [sortDirection, setSortDirection] = useState('ascending');
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastType, setToastType] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sort, setSort] = useState("name");
+  const [sortDirection, setSortDirection] = useState("ascending");
+  const [filter, setFilter] = useState("none");
   const [sortedClss, setSortedCllss] = useState([]);
   const [sortedReadingLvl, setSortedReadingLvl] = useState([]);
-  const [filterdUsers, setFilterdUsers] = useState([]);
-  const [users, setUsers] = useState([]);
   const [sortedPrivs, setSortedprivs] = useState([]);
-  const [filter, setFilter] = useState('none');
-  const [selectedMaterials, setSelectedMaterials] = useState([]);
-  const [selectedHistory, setSelectedHistory] = useState([]);
 
-  const [showToast, setShowToast] = useState(false)
-  const [toastMessage, setToastMessage] = useState(``)
-  const [toastType, setToastType] = useState(``)
+  // ✅ Populate derived filter/sort lists
+  useEffect(() => {
+    if (!users) return;
+    setFilteredUsers(users);
 
-  const [searchQuery, setSearchQuery] = useState('');
+    const readinglevels = Array.from(
+      new Set(
+        users.map((u) => u.readinglevel?.toLowerCase().trim()).filter(Boolean)
+      )
+    ).sort();
+    const classes = Array.from(
+      new Set(users.map((u) => u.class?.toLowerCase().trim()).filter(Boolean))
+    ).sort();
+    const privs = Array.from(new Set(users.map((u) => u.privilege))).sort();
 
+    setSortedReadingLvl(readinglevels);
+    setSortedCllss(classes);
+    setSortedprivs(privs);
+  }, [users]);
+
+  // 🔎 Search
   const handleSearch = (event) => {
-    const query = event.target.value.toLowerCase()
-
+    const query = event.target.value.toLowerCase();
     setSearchQuery(query);
-
-    const regex = new RegExp(query, 'i');
-
-    const searchedUsers = users.filter(user =>
-      regex.test(user?.firstname) ||
-      regex.test(user?.class) ||
-      regex.test(user?.lastname)
+    if (!users) return;
+    const regex = new RegExp(query, "i");
+    setFilteredUsers(
+      users.filter(
+        (u) =>
+          regex.test(u.firstname) ||
+          regex.test(u.lastname) ||
+          regex.test(u.class)
+      )
     );
-
-    setFilterdUsers(searchedUsers);
   };
 
-
-  function reloadPage() {
-    setUsers(null)
-    setFilterdUsers(null)
-    setShowAll(true)
-    setSelectedUser(null)
-
-    const body = { sessionId: getCookie('sessionId') };
-
-    let isMounted = true;
-    const fetchData = async () => {
-      try {
-        const response = await post('/allUsers', body, 'manage users');
-        if (isMounted) {
-          setUsers(response);
-          setFilterdUsers(response);
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    };
-    fetchData();
-    return () => { isMounted = false };
-  }
-
-
-  async function deleteUser(userId) {
-    const sessionId = getCookie('sessionId');
-    const body = { sessionId, userId };
-    if (window.confirm('Weet u zeker dat u deze gebruiker wilt verwijderen?')) {
-      await post('/removeUser', body);
-      reloadPage()
-
-      setShowToast(true)
-      setToastMessage(`Gebruiker succesvol verwijderd.`)
-      setToastType(`succes`)
-    }
-  }
-
-  useEffect(() => {
-    const body = { sessionId: getCookie('sessionId') };
-    const fetchData = async () => {
-      const response = await post('/allUsers', body, 'manage users');
-      const specifiedUsers = response;
-      setUsers(specifiedUsers);
-      setFilterdUsers(specifiedUsers);
-
-      let readinglevels = [];
-      specifiedUsers?.forEach(user => {
-        if (!readinglevels.includes(user.readinglevel?.toLowerCase().trim())) {
-          readinglevels = [...readinglevels, user.readinglevel?.toLowerCase().trim()];
-        }
-      });
-      readinglevels.sort();
-      const indexReadinglvl = readinglevels.indexOf(null);
-      if (indexReadinglvl > -1) {
-        readinglevels.splice(indexReadinglvl, 1);
-      }
-      setSortedReadingLvl(readinglevels);
-
-      let allClss = [];
-      specifiedUsers?.forEach(user => {
-        if (!allClss.includes(user.class?.toLowerCase().trim())) {
-          allClss = [...allClss, user.class?.toLowerCase().trim()];
-        }
-      });
-      allClss.sort();
-      const indexClss = allClss.indexOf(null);
-      if (indexClss > -1) {
-        allClss.splice(indexClss, 1);
-      }
-      setSortedCllss(allClss);
-
-      let privs = [];
-      specifiedUsers?.forEach(user => {
-        if (!privs.includes(user.privilege)) {
-          privs = [...privs, user.privilege];
-        }
-      });
-      privs.sort();
-      setSortedprivs(privs);
-    };
-    fetchData();
-  }, []);
-
-  if (!users) {
-    return <div>Loading...</div>;
-  }
-
+  // 🔽 Sorting
   const handleChangeSort = (event) => {
     const selectedSort = event.target.value;
-    const selectedDirection = sortDirection;
     setSort(selectedSort);
-    // eslint-disable-next-line
-    const sortedMaterials = [...users].sort((a, b) => {
-      if (selectedDirection === 'ascending') {
-        if (a[selectedSort] < b[selectedSort]) return -1;
-        if (a[selectedSort] > b[selectedSort]) return 1;
-        return 0;
-      } else if (selectedDirection === 'descending') {
-        if (a[selectedSort] > b[selectedSort]) return -1;
-        if (a[selectedSort] < b[selectedSort]) return 1;
-        return 0;
-      }
+    if (!filteredUsers) return;
+    const sorted = [...filteredUsers].sort((a, b) => {
+      const valA = a[selectedSort] ?? "";
+      const valB = b[selectedSort] ?? "";
+      return sortDirection === "ascending"
+        ? valA.localeCompare(valB)
+        : valB.localeCompare(valA);
     });
-
-    setFilterdUsers(sortedMaterials); // Update the sorted data
+    setFilteredUsers(sorted);
   };
 
   const handleChangeDirection = (event) => {
-    const selectedSort = sort; // Get the currently selected sort key
-    const selectedDirection = event.target.value; // Get the newly selected sort direction
-
-    setSortDirection(selectedDirection); // Update the sort direction
-    // eslint-disable-next-line
-    const sortedMaterials = [...users].sort((a, b) => {
-      if (selectedDirection === 'ascending') {
-        if (a[selectedSort] < b[selectedSort]) return -1;
-        if (a[selectedSort] > b[selectedSort]) return 1;
-        return 0;
-      } else if (selectedDirection === 'descending') {
-        if (a[selectedSort] > b[selectedSort]) return -1;
-        if (a[selectedSort] < b[selectedSort]) return 1;
-        return 0;
-      }
+    const dir = event.target.value;
+    setSortDirection(dir);
+    if (!filteredUsers) return;
+    const sorted = [...filteredUsers].sort((a, b) => {
+      const valA = a[sort] ?? "";
+      const valB = b[sort] ?? "";
+      return dir === "ascending"
+        ? valA.localeCompare(valB)
+        : valB.localeCompare(valA);
     });
-
-    setFilterdUsers(sortedMaterials); // Update the sorted data
+    setFilteredUsers(sorted);
   };
 
+  // 🔍 Filtering
   const handleChangeFilter = (event) => {
-    const {
-      selectedIndex,
-      options
-    } = event.currentTarget;
+    const { selectedIndex, options } = event.currentTarget;
     const selectedOption = options[selectedIndex];
     const selectedFilter = selectedOption.value;
-    const selectedFilterGroup = selectedOption.closest('optgroup')?.id;
+    const group = selectedOption.closest("optgroup")?.id;
 
     setFilter(selectedFilter);
+    if (!users) return;
 
-    let selectedFilterUsers = users;
-
-    if (selectedFilterGroup === 'class') {
-      selectedFilterUsers = users.filter(user => user.class?.toLowerCase().trim() === selectedFilter);
+    let filtered = users;
+    if (group === "class") {
+      filtered = users.filter(
+        (u) => u.class?.toLowerCase().trim() === selectedFilter
+      );
+    } else if (group === "readinglevel") {
+      filtered = users.filter(
+        (u) => u.readinglevel?.toLowerCase().trim() === selectedFilter
+      );
+    } else if (group === "privilege") {
+      filtered = users.filter((u) => u.privilege === Number(selectedFilter));
+    } else if (selectedFilter === "none") {
+      filtered = users;
     }
 
-    if (selectedFilterGroup === 'readinglevel') {
-      selectedFilterUsers = users.filter(user => user.readinglevel?.toLowerCase().trim() === selectedFilter);
-    }
-
-    if (selectedFilterGroup === 'privilege') {
-      selectedFilterUsers = users.filter(user => user.privilege === Number(selectedFilter));
-    }
-
-    if (selectedFilter === 'none') selectedFilterUsers = users;
-
-    setFilterdUsers(selectedFilterUsers);
+    setFilteredUsers(filtered);
   };
 
+  // 👤 Fetch and cache selected user + materials
   const handleSelect = async (user) => {
-    const sessionid = getCookie(`sessionId`);
-    const body = { sessionid, userid: user.userid };
+    // Try cache first
+    let selected = queryClient.getQueryData(["user", user.userid]);
+    if (!selected) {
+      selected = await fetchUser({
+        url: "/getUser",
+        body: { sessionid: sessionId, userid: user.userid },
+        key: ["user", user.userid],
+      });
+      queryClient.setQueryData(["user", user.userid], selected);
+    }
 
-    setSelectedUser(await post(`/getUser`, body, `selected user`));
+    setSelectedUser(selected);
     setShowAll(false);
 
-    const historyPromises = user.history?.map(async e => {
-      const material = await post(`/getMaterial`, { sessionid, materialid: e.material });
-      return material[0].title;
-    });
-    const materialPromises = user.matrials?.map(async e => {
-      const material = await post(`/getMaterial`, { sessionid, materialid: e.material });
-      return material[0].title;
-    });
+    const fetchCachedMaterial = async (materialId) => {
+      const cacheKey = ["material", materialId];
+      const cached = queryClient.getQueryData(cacheKey);
+      if (cached) return cached.title;
+      const data = await fetchMaterial({
+        url: "/getMaterial",
+        body: { sessionid: sessionId, materialid: materialId },
+        key: cacheKey,
+      });
+      queryClient.setQueryData(cacheKey, data[0]);
+      return data[0]?.title;
+    };
 
-    let history
-    let material
-    // Resolve all promises
-    if (historyPromises !== undefined) history = await Promise.all(historyPromises);
-    if (materialPromises !== undefined) material = await Promise.all(materialPromises);
-
-
+    const history = await Promise.all(
+      (user.history ?? []).map((e) => fetchCachedMaterial(e.material))
+    );
+    const materials = await Promise.all(
+      (user.matrials ?? []).map((e) => fetchCachedMaterial(e.material))
+    );
 
     setSelectedHistory(history);
-    setSelectedMaterials(material)
+    setSelectedMaterials(materials);
   };
 
-    const handleChangeUser = () => {
-    document.cookie = 'changeUser=' + selectedUser.userid + ';path=/'
-    redirectToPage('bewerken')
-  }
+  // ✏️ Navigation helpers
+  const redirectToPage = (path) => navigate(path);
+  const handlePw = (userid) => {
+    document.cookie = "changePwUser=" + userid;
+    redirectToPage("/beheer/verander-gebruiker-wachtwoord");
+  };
+  const handleChangeUser = () => {
+    document.cookie = "changeUser=" + selectedUser.userid + ";path=/";
+    redirectToPage("bewerken");
+  };
 
+  // ❌ Delete user
+  const deleteUser = async (userId) => {
+    if (!window.confirm("Weet u zeker dat u deze gebruiker wilt verwijderen?"))
+      return;
+    await post("/removeUser", { sessionId, userId });
+    await refetchUsers();
+    setToastMessage("Gebruiker succesvol verwijderd.");
+    setToastType("success");
+    setShowToast(true);
+  };
+
+  // 🕐 Loading/error states
+  if (isLoading) return <div>Loading gebruikers...</div>;
+  if (error) return <div>Fout bij ophalen gebruikers.</div>;
 
   return (
     <div>
@@ -259,12 +212,12 @@ const ManageUsers = () => {
           onClose={() => setShowToast(false)}
         />
       )}
-      <nav><TeacherNavbar /></nav>
-      <div className='content'>
+      <TeacherNavbar />
+      <div className="content">
         <Toolbar
           searchQuery={searchQuery}
           onSearchChange={handleSearch}
-          searchLabel='Naam of klas'
+          searchLabel="Naam of klas"
           sort={sort}
           sortDirection={sortDirection}
           filter={filter}
@@ -272,56 +225,89 @@ const ManageUsers = () => {
           onSortDirectionChange={handleChangeDirection}
           onFilterChange={handleChangeFilter}
           sortOptions={[
-            { value: 'name', label: 'Naam' },
-            { value: 'class', label: 'Klas' },
-            { value: 'lastname', label: 'Achternaam' },
+            { value: "name", label: "Naam" },
+            { value: "class", label: "Klas" },
+            { value: "lastname", label: "Achternaam" },
           ]}
           filterOptions={[
             {
               id: "privilege",
               label: "Gebruikerstype",
-              options: [
-                { value: "0", label: "Leerling" },
-                { value: "1", label: "Leerkracht" },
-                { value: "2", label: "Beheerders" },
-              ],
+              options: sortedPrivs.map((p) => ({
+                value: p,
+                label:
+                  p === 0 ? "Leerling" : p === 1 ? "Leerkracht" : "Beheerder",
+              })),
             },
             {
               id: "class",
               label: "Klas",
-              options: sortedClss.map(cls => ({ value: cls, label: cls })),
+              options: sortedClss.map((cls) => ({ value: cls, label: cls })),
             },
             {
               id: "readinglevel",
               label: "Niveau",
-              options: sortedReadingLvl.map(level => ({ value: level, label: level })),
+              options: sortedReadingLvl.map((lvl) => ({
+                value: lvl,
+                label: lvl,
+              })),
             },
           ]}
         />
 
-        <div className=''>
-          {showAll ?
-            <div className="itemList">{
-              filterdUsers.map((user) => (
-                <li key={user.userid} onClick={() => { handleSelect(user) }} className='item'>
-                  <h3>{user.firstname + ' ' + user.lastname}</h3>
+        <div>
+          {showAll ? (
+            <div className="itemList">
+              {filteredUsers.map((user) => (
+                <li
+                  key={user.userid}
+                  onClick={() => handleSelect(user)}
+                  className="item"
+                >
+                  <h3>{user.firstname + " " + user.lastname}</h3>
                 </li>
               ))}
             </div>
-            : <div>
-              <h2>{selectedUser.firstname + ' ' + selectedUser.lastname}</h2>
+          ) : (
+            <div>
+              <h2>{selectedUser.firstname + " " + selectedUser.lastname}</h2>
               <p>Klas: {selectedUser.class}</p>
               <p>Klas nummer: {selectedUser.classnum}</p>
+
               <h3>Geschiedenis:</h3>
-              {selectedHistory ? <div className='history'>{selectedHistory?.map(book => <p>{book}</p>)}</div> : <p>Geen geschiedenis</p>}
+              {selectedHistory.length ? (
+                selectedHistory.map((b, i) => <p key={i}>{b}</p>)
+              ) : (
+                <p>Geen geschiedenis</p>
+              )}
+
               <h3>Boeken in bezit:</h3>
-              {selectedMaterials ? <div className='materials'>{selectedMaterials?.map(book => <p>{book}</p>)}</div> : <p>Geen boeken in bezit</p>}
-              <button onClick={() => { handlePw(selectedUser.userid) }} className="button">Verander wachtwoord van {selectedUser.firstname + ' ' + selectedUser.lastname}</button>
-              <button onClick={() => { deleteUser(selectedUser.userid) }} className="button">Verwijder {selectedUser.firstname + ' ' + selectedUser.lastname}</button>
-              <button className='button' onClick={() => handleChangeUser()}>Bewerk {selectedUser.firstname}</button>
-              <button onClick={() => setShowAll(true)} className="button">Toon alle gebruikers</button>
+              {selectedMaterials.length ? (
+                selectedMaterials.map((b, i) => <p key={i}>{b}</p>)
+              ) : (
+                <p>Geen boeken in bezit</p>
+              )}
+
+              <button
+                onClick={() => handlePw(selectedUser.userid)}
+                className="button"
+              >
+                Verander wachtwoord
+              </button>
+              <button
+                onClick={() => deleteUser(selectedUser.userid)}
+                className="button"
+              >
+                Verwijder gebruiker
+              </button>
+              <button onClick={handleChangeUser} className="button">
+                Bewerk gebruiker
+              </button>
+              <button onClick={() => setShowAll(true)} className="button">
+                Terug naar alle gebruikers
+              </button>
             </div>
-          }
+          )}
         </div>
       </div>
     </div>

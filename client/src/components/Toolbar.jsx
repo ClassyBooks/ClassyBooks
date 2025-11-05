@@ -1,4 +1,3 @@
-import React from "react";
 import "../App.css"; // keep your styles
 
 const Toolbar = ({

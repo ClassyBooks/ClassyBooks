@@ -1,100 +1,105 @@
-import { useEffect, useState } from 'react';
-import '../../App.css'
-import { Title, Toast, getCookie, post } from '../../functions';
-import TeacherNavbar from '../teacher/teacherNavbar';
-
+import { useEffect, useState } from "react";
+import "../../App.css";
+import { setTitle, Toast, getCookie } from "../../functions";
+import TeacherNavbar from "../teacher/teacherNavbar";
+import { usePost, useMutatePost } from "../../hooks";
 
 const ChangeMaterial = () => {
-  const [material, setMaterial] = useState([])
-  const [isChecked, setIsChecked] = useState(0)
-  const [isbn, setIsbn] = useState()
+  const [material, setMaterial] = useState(null);
+  const [isChecked, setIsChecked] = useState(false);
+  const [isbn, setIsbn] = useState("");
 
-  const [showToast, setShowToast] = useState(false)
-  const [toastMessage, setToastMessage] = useState(``)
-  const [toastType, setToastType] = useState(``)
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastType, setToastType] = useState("");
 
+  const body = {
+    sessionid: getCookie("sessionId"),
+    materialid: getCookie("changeMaterial"),
+  };
+  const { data, isLoading } = usePost("/getMaterial", body, body.materialid);
+
+  const { mutateAsync } = useMutatePost(body.materialid);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const body = { sessionid: getCookie('sessionId'), materialid: getCookie('changeMaterial') }
-      let changeMaterial = await post('/getMaterial', body, 'change material', true)
-      setMaterial(await changeMaterial[0])
-      setIsChecked(changeMaterial[0].available)
+    if (data && data.length > 0) {
+      setMaterial(data[0]);
+      setIsChecked(!!data[0].available);
     }
-    fetchData();
-  }, [])
+  }, [data]);
 
-  if (!material) {
+  setTitle("Bewerk Boek");
+
+  if (isLoading || !material) {
     return <div>Loading...</div>;
   }
 
-  Title('Bewerk Boek ' + material.title)
-  
-
-
   function handleIsbn(value) {
-    const decoded = value.split('').map(e => {
-      if (e === '&') { return '1' } else
-        if (e === 'é') { return '2' } else
-          if (e === '"') { return '3' } else
-            if (e === "'") { return '4' } else
-              if (e === '(') { return '5' } else
-                if (e === '§') { return '6' } else
-                  if (e === 'è') { return '7' } else
-                    if (e === '!') { return '8' } else
-                      if (e === 'ç') { return '9' } else
-                        if (e === 'ç') { return '9' } else
-                          if (e === 'à') { return '0' }
-                          else return e
-    }).join("")
-
-    setIsbn(decoded)
-
+    const decoded = value
+      .split("")
+      .map((e) => {
+        if (e === "&") return "1";
+        if (e === "é") return "2";
+        if (e === '"') return "3";
+        if (e === "'") return "4";
+        if (e === "(") return "5";
+        if (e === "§") return "6";
+        if (e === "è") return "7";
+        if (e === "!") return "8";
+        if (e === "ç") return "9";
+        if (e === "à") return "0";
+        return e;
+      })
+      .join("");
+    setIsbn(decoded);
   }
 
   async function handleChange(key, value) {
-    console.log(key, value)
-    let keys = [key]
-    let values = [value]
+    let keys = [key];
+    let values = [value];
 
-    let temp = material
-    console.log(temp)
+    const updated = { ...material };
+    let descr = { ...updated.descr };
 
-    let descr = { author:temp.descr.author , cover:temp.descr.cover, pages:temp.descr.pages, readinglevel:temp.descr.readinglevel }
-    console.log('descr before edit:')
-    console.log(descr)
-    if(key === 'available') {
-      if(value) {
-        values = [1]
-      }
+    if (key === "available") {
+      values = [value ? 1 : 0];
+      updated.available = value ? 1 : 0;
+    } else if (["author", "cover", "pages", "readinglevel"].includes(key)) {
+      descr[key] = value;
+      values = [descr];
+      keys = ["descr"];
+      updated.descr = descr;
+    } else {
+      updated[key] = value;
     }
 
-    setMaterial(temp)
+    setMaterial(updated);
 
-    if (key === 'author' || key === 'cover' || key === 'pages' || key === 'readinglevel') {
-      descr[key] = value
-      values = [descr]
-      keys = ['descr']
-      temp.descr = descr
-    }else temp[key] = value
-    console.log('decr after edit:')
-    console.log(descr)
-    const body = { sessionid: getCookie('sessionId'), materialid: getCookie('changeMaterial'), keys, values }
-    post('/changeMaterial', body, 'changeMaterial').then((resp) => resp.text().then((resp) => {
-      if (resp === 'Statement executed correctly') {
-        setShowToast(true)
-        setToastMessage(`Boek succesvol aangepast.`)
-        setToastType(`succes`)
-      }
-      else {
-        setShowToast(true)
-        setToastMessage(`De boek is niet succesvol aangepast. Probeer later opnieuw.`)
-        setToastType(`error`)
-      }
-    }))    
+    const body = {
+      sessionid: getCookie("sessionId"),
+      materialid: getCookie("changeMaterial"),
+      keys,
+      values,
+    };
+
+    const resp = await mutateAsync({
+      url: "/changeMaterial",
+      body,
+      key: "changeMaterial",
+    });
+
+    if (resp === "Statement executed correctly") {
+      setShowToast(true);
+      setToastMessage(`Boek succesvol aangepast.`);
+      setToastType(`succes`);
+    } else {
+      setShowToast(true);
+      setToastMessage(
+        `Het boek is niet succesvol aangepast. Probeer later opnieuw.`
+      );
+      setToastType(`error`);
+    }
   }
-
-
 
   return (
     <div>
@@ -106,33 +111,135 @@ const ChangeMaterial = () => {
           onClose={() => setShowToast(false)}
         />
       )}
-      <nav><TeacherNavbar /></nav>{
-        !material ? <div>Loading...</div> :
+      <nav>
+        <TeacherNavbar />
+      </nav>
+
       <div className="content">
         <h2>Verander gegevens van {material.title}</h2>
         <h2>Druk op enter om op te slaan</h2>
+
         <form>
-        <input type="text" name='title' placeholder='Titel' className='login' defaultValue={material?.title || ''} onKeyDown={e => { if (e.key === 'Enter') {e.preventDefault(); handleChange('title', e.target.value)} }}/>
-        <br />
-        <input type="text" name='place' placeholder='Locatie' className='login' defaultValue={material?.place || ''} onKeyDown={e => { if (e.key === 'Enter') {e.preventDefault(); handleChange('place', e.target.value)} }}/>
-        <br />
-        <input type="text" name='author' placeholder='Auteur' className='login' defaultValue={material?.descr?.author || ''} onKeyDown={e => { if (e.key === 'Enter') {e.preventDefault(); handleChange('author', e.target.value)} }}/>
-        <br />
-        <input type="url" name='cover' placeholder='Url van de cover' className='login' defaultValue={material?.descr?.cover || ''} onKeyDown={e => { if (e.key === 'Enter') {e.preventDefault(); handleChange('cover', e.target.value)} }}/>
-        <br />
-        <input type="number" name='pages' placeholder='Aantal paginas' className='login' defaultValue={material?.descr?.pages || ''} onKeyDown={e => { if (e.key === 'Enter') {e.preventDefault(); handleChange('pages', e.target.value)} }}/>
-        <br />
-        <input type="text" name='readinglevel' placeholder='Lees niveau' className='login' defaultValue={material?.descr?.readinglevel || ''} onKeyDown={e => { if (e.key === 'Enter') {e.preventDefault(); handleChange('readinglevel', e.target.value)} }}/>
-        <br />
-        <input type="text" name='isbn' placeholder='ISBN' className='login' value={isbn} onInput={(e) => handleIsbn(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') {e.preventDefault(); handleChange('isbn', isbn)} }} />
-        <br />
-        <input type="checkbox" placeholder='Beschikbaar' checked={isChecked} onChange={(e) => {setIsChecked(e.target.checked); handleChange('available', isChecked)}} />
-        <label htmlFor="">Beschikbaar</label>
-        <br />
-      </form>
-      </div>}
+          <input
+            type="text"
+            name="title"
+            placeholder="Titel"
+            className="login"
+            defaultValue={material?.title || ""}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleChange("title", e.target.value);
+              }
+            }}
+          />
+          <br />
+
+          <input
+            type="text"
+            name="place"
+            placeholder="Locatie"
+            className="login"
+            defaultValue={material?.place || ""}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleChange("place", e.target.value);
+              }
+            }}
+          />
+          <br />
+
+          <input
+            type="text"
+            name="author"
+            placeholder="Auteur"
+            className="login"
+            defaultValue={material?.descr?.author || ""}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleChange("author", e.target.value);
+              }
+            }}
+          />
+          <br />
+
+          <input
+            type="url"
+            name="cover"
+            placeholder="Url van de cover"
+            className="login"
+            defaultValue={material?.descr?.cover || ""}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleChange("cover", e.target.value);
+              }
+            }}
+          />
+          <br />
+
+          <input
+            type="number"
+            name="pages"
+            placeholder="Aantal paginas"
+            className="login"
+            defaultValue={material?.descr?.pages || ""}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleChange("pages", e.target.value);
+              }
+            }}
+          />
+          <br />
+
+          <input
+            type="text"
+            name="readinglevel"
+            placeholder="Lees niveau"
+            className="login"
+            defaultValue={material?.descr?.readinglevel || ""}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleChange("readinglevel", e.target.value);
+              }
+            }}
+          />
+          <br />
+
+          <input
+            type="text"
+            name="isbn"
+            placeholder="ISBN"
+            className="login"
+            value={isbn}
+            onInput={(e) => handleIsbn(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleChange("isbn", isbn);
+              }
+            }}
+          />
+          <br />
+
+          <input
+            type="checkbox"
+            checked={isChecked}
+            onChange={(e) => {
+              setIsChecked(e.target.checked);
+              handleChange("available", e.target.checked);
+            }}
+          />
+          <label>Beschikbaar</label>
+          <br />
+        </form>
+      </div>
     </div>
   );
-}
+};
 
 export default ChangeMaterial;

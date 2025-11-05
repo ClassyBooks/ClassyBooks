@@ -1,11 +1,11 @@
 import "../../App.css";
 import crypto from "crypto-js";
-import { post, Title, Toast } from "../../functions";
+import { post, setTitle, Toast } from "../../functions";
 import { useNavigate } from "react-router";
 import { useState } from "react";
 
 function TeacherLogin() {
-  Title("Leerkracht login");
+  setTitle("Leerkracht login");
 
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState(``);
