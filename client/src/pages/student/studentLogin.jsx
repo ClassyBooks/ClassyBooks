@@ -18,7 +18,7 @@ const StudentLogin = () => {
   };
 
   const request = async (body) => {
-    const response = await post("/loginPupil", body, "student login", true);
+    const response = await post("/loginPupil", body, "student login");
     if (response.privilege !== 0) {
       setShowToast(true);
       setToastMessage(

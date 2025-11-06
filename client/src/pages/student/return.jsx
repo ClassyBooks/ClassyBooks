@@ -7,16 +7,16 @@ import {
   post,
   Toast,
 } from "../../functions";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Rating from "@mui/material/Rating";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
+import { usePost } from "../../hooks";
 
 const ReturnBooks = () => {
   useCheckUser(0);
   setTitle("inleveren");
 
-  const [book, setBook] = useState(null);
   const [rating, setRating] = useState(null);
   const [isChecked, setIsChecked] = useState(false);
 
@@ -24,25 +24,15 @@ const ReturnBooks = () => {
   const [toastMessage, setToastMessage] = useState(``);
   const [toastType, setToastType] = useState(``);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const userid = getCookie("userId");
-        const sessionid = getCookie("sessionId");
-        const userBody = { sessionid, userid };
-        const user = await post("/getUser", userBody);
+  const userid = getCookie("userId");
+  const sessionid = getCookie("sessionId");
+  const { data: user } = usePost("/getUser", { userid, sessionid }, userid);
+  const { data: book } = usePost(
+    "/getMaterial",
+    { materialid: user?.materials[0], sessionid },
+    user?.materials[0]
+  );
 
-        const materialid = await user.materials[0];
-        const body = { materialid, sessionid };
-        const response = await post("/getMaterial", body);
-        setBook(await response);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    fetchData();
-  }, []);
   const navigate = useNavigate();
 
   const redirectToPage = (path) => {
