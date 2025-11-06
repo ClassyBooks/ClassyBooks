@@ -15,7 +15,7 @@ const AddMaterial = () => {
 
   const [isChecked, setIsChecked] = useState(true);
   const [isbn, setIsbn] = useState();
-  const [title, setTitle] = useState(``);
+  const [title, setBookTitle] = useState(``);
   const [author, setAuthor] = useState(``);
   const [pages, setPages] = useState(``);
   const [cover, setCover] = useState(``);
@@ -95,7 +95,7 @@ const AddMaterial = () => {
 
     setLoader(!isbnData);
     setAuthor(await isbnData?.authors[0]);
-    setTitle(await isbnData?.title);
+    setBookTitle(await isbnData?.title);
     let img = new Image();
 
     img.src = `http://classybooks.woutvdb.uk/api/getImage.php?imageId=${isbn}`;
@@ -158,7 +158,7 @@ const AddMaterial = () => {
           placeholder="Titel"
           class="login"
           value={title}
-          onInput={(e) => setTitle(e.target.value)}
+          onInput={(e) => setBookTitle(e.target.value)}
         />
         <br />
         <input type="text" name="place" placeholder="Locatie" class="login" />
