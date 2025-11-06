@@ -1,14 +1,8 @@
 import { useState, useEffect } from "react";
 import "../../App.css";
-import {
-  useCheckUser,
-  getCookie,
-  post,
-  setTitle,
-  Toast,
-} from "../../functions";
+import { getCookie, post, setTitle, Toast } from "../../functions";
 import Toolbar from "../../components/Toolbar";
-import { usePost } from "../../hooks";
+import { usePost, useCheckUser } from "../../hooks";
 
 const StudentLib = () => {
   setTitle("Bibliotheek");

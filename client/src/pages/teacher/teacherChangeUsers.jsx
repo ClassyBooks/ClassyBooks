@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import "../../App.css";
 import { setTitle, getCookie, post, Toast } from "../../functions";
 import TeacherNavbar from "./teacherNavbar";
 import { useNavigate } from "react-router-dom";
+import { usePost } from "../../hooks";
 
 const TeacherChangeUser = () => {
-  const [user, setUser] = useState([]);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState(``);
   const [toastType, setToastType] = useState(``);
@@ -18,17 +18,12 @@ const TeacherChangeUser = () => {
   function timeout(delay) {
     return new Promise((res) => setTimeout(res, delay));
   }
-  useEffect(() => {
-    const fetchData = async () => {
-      const body = {
-        sessionid: getCookie("sessionId"),
-        userid: getCookie("changeUser"),
-      };
-      let changeUser = await post("/getUser", body, "change user");
-      setUser(changeUser);
-    };
-    fetchData();
-  }, []);
+
+  const user = usePost(
+    "/getUser",
+    { sessionid: getCookie("sessionId"), userid: getCookie("changeUser") },
+    getCookie("changeUser")
+  );
 
   setTitle("Bewerk gebruiker " + user.firstname + " " + user.lastname);
 
@@ -43,11 +38,11 @@ const TeacherChangeUser = () => {
     let newNum = document.getElementById("clssNum").value;
     let newReadinglvl = document.getElementById("readinglvl").value;
 
-    if (newName == null || newName == "") newName = user.firstname;
-    if (newSurname == null || newSurname == "") newSurname = user.lastname;
-    if (newClss == null || newClss == "") newClss = user.class;
-    if (newNum == null || newNum == "") newNum = user.classnum;
-    if (newReadinglvl == null || newReadinglvl == "")
+    if (newName == null || newName === "") newName = user.firstname;
+    if (newSurname == null || newSurname === "") newSurname = user.lastname;
+    if (newClss == null || newClss === "") newClss = user.class;
+    if (newNum == null || newNum === "") newNum = user.classnum;
+    if (newReadinglvl == null || newReadinglvl === "")
       newReadinglvl = user.readinglevel;
 
     const keys = ["firstname", "lastname", "class", "classnum", "readinglevel"];

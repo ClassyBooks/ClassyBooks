@@ -1,6 +1,6 @@
 import "../App.css";
 import { useNavigate } from "react-router-dom";
-import { useCheckUser, getCookie, post } from "../functions.js";
+import { getCookie, post } from "../functions.js";
 import { useEffect, useState } from "react";
 import { usePost } from "../hooks.js";
 const logo_long = require("../art/logo_long.png");
@@ -24,7 +24,6 @@ const Navbar = () => {
     setHome("/");
     redirectToPage("../#");
   }
-  useCheckUser();
   function handleHome() {
     redirectToPage(home);
   }

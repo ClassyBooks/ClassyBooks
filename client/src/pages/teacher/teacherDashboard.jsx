@@ -1,37 +1,33 @@
 import "../../App.css";
 import TeacherNavbar from "./teacherNavbar";
-import { getCookie, post, setTitle } from "../../functions";
+import { getCookie } from "../../functions";
 import { useEffect, useState } from "react";
+import { usePost } from "../../hooks";
 
 const Dashboard = () => {
-  const [books, setBooks] = useState({});
-  const [users, setUsers] = useState({});
   const [students, setStudents] = useState(0);
   const [studentBooks, setStudentBooks] = useState(0);
   const [checkedOut, setCheckedOut] = useState(0);
   const [overdue, setOverdue] = useState(0);
 
+  const books = usePost("/allMaterials", {}, "allMaterials");
+  const users = usePost(
+    "/allUsers",
+    { sessionId: getCookie("sessionId") },
+    "allUsers"
+  );
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const booksData = await post("/allMaterials");
-        setBooks(booksData);
-        countCheckedOut(booksData);
-        countOverdue(booksData);
+    if (!books.isLoading) {
+      countCheckedOut(books.data);
+      countOverdue(books.data);
+    }
 
-        const sessionId = getCookie("sessionId");
-        const body = { sessionId };
-        const usersData = await post("/allUsers", body);
-        setUsers(usersData);
-        countStudents(usersData);
-        countStudentBooks(usersData);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    fetchData();
-  }, []);
+    if (!users.isLoading) {
+      countStudents(users.data);
+      countStudentBooks(users.data);
+    }
+  }, [users, books]);
 
   function countStudents(usersData) {
     const count = usersData.reduce((accumulator, user) => {
@@ -91,11 +87,11 @@ const Dashboard = () => {
         <div className="inventory">
           <h3 className="caption">Inventaris</h3>
           <div className="books">
-            <h1>{books.length}</h1>
+            <h1>{books?.data?.length}</h1>
             <p>boeken</p>
           </div>
           <div className="students">
-            <h1>{users.length}</h1>
+            <h1>{users?.data?.length}</h1>
             <p>gebruikers</p>
           </div>
           <div className="copies">

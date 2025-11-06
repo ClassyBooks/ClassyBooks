@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import "../../App.css";
 import TeacherNavbar from "./teacherNavbar";
-import { post, setTitle } from "../../functions";
+import { setTitle } from "../../functions";
 import Toolbar from "../../components/Toolbar";
+import { usePost } from "../../hooks";
 
 const TeacherLib = () => {
   setTitle("Bibliotheek");
-  const [books, setBooks] = useState(null);
   const [filterdBooks, setFilterdBooks] = useState(null);
   const [showAll, setShowAll] = useState(true);
   const [selectedBook, setSelectedBook] = useState(null);
@@ -17,40 +17,24 @@ const TeacherLib = () => {
   const [readinglevels, setReadinglevels] = useState([]);
   const [searchQuery, setSearchQuery] = useState(""); // New search state
 
+  const books = usePost("/allMaterials", {}, "allMaterials");
   useEffect(() => {
-    let isMounted = true;
-    const fetchData = async () => {
-      try {
-        const response = await post("/allMaterials");
-        if (isMounted) {
-          setBooks(response);
-          setFilterdBooks(response);
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    fetchData();
-    return () => {
-      isMounted = false;
-    }; // Cleanup functie
-  }, []);
-
-  useEffect(() => {
-    if (books) {
+    if (books.data && !books.isLoading) {
+      setFilterdBooks(books.data);
       setLocations([
-        ...new Set(books.map((book) => book.place?.toLowerCase().trim())),
+        ...new Set(books.data.map((book) => book.place?.toLowerCase().trim())),
       ]);
       setReadinglevels([
         ...new Set(
-          books.map((book) => book.descr.readinglevel?.toLowerCase().trim())
+          books.data.map((book) =>
+            book.descr.readinglevel?.toLowerCase().trim()
+          )
         ),
       ]);
     }
   }, [books]);
 
-  if (!books) {
+  if (books.isLoading || !filterdBooks) {
     return <div>Loading...</div>;
   }
 
@@ -62,25 +46,25 @@ const TeacherLib = () => {
 
     setFilter(selectedFilter);
     if (selectedFilterGroup === "place") {
-      const selectedFilterBooks = books.filter((book) =>
+      const selectedFilterBooks = books.data.filter((book) =>
         book.place?.toLowerCase().trim().includes(selectedFilter)
       );
       setFilterdBooks(selectedFilterBooks);
     }
     if (selectedFilterGroup === "readinglevel") {
-      const selectedFilterBooks = books.filter((book) =>
+      const selectedFilterBooks = books.data.filter((book) =>
         book.descr.readinglevel?.toLowerCase().trim().includes(selectedFilter)
       );
       setFilterdBooks(selectedFilterBooks);
     }
     if (selectedFilterGroup === "available") {
-      const selectedFilterBooks = books.filter((book) =>
+      const selectedFilterBooks = books.data.filter((book) =>
         book.available.includes(selectedFilter)
       );
       setFilterdBooks(selectedFilterBooks);
     }
 
-    if (selectedFilter === "none") setFilterdBooks(books);
+    if (selectedFilter === "none") setFilterdBooks(books.data);
   };
 
   const handleChangeSort = (event) => {
@@ -161,7 +145,7 @@ const TeacherLib = () => {
 
     const regex = new RegExp(query, "i");
 
-    const searchedBooks = books.filter(
+    const searchedBooks = books.data.filter(
       (book) =>
         regex.test(book?.title) || // Check if title exists
         regex.test(book?.descr?.author) || // Check if descr and author exist

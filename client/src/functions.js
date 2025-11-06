@@ -1,8 +1,6 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import "./App.css";
 import fetch from "node-fetch";
 import { useEffect, useState } from "react";
-import { usePost } from "./hooks";
 const cheerio = require("cheerio");
 
 //extracs cookie zith given name
@@ -23,37 +21,6 @@ export function getCookie(cookieName) {
 //changes title
 export function setTitle(title) {
   document.title = "Classy Books - " + title;
-}
-
-//checks if user is privileged to the page
-export function useCheckUser() {
-  const url = window.location.href;
-  let privilege = 0;
-  if (url.includes("beheer/")) privilege = 2;
-  else if (url.includes("leerkracht/")) privilege = 1;
-
-  const sessionid = getCookie("sessionId");
-  const userid = getCookie("userId");
-  const body = { sessionid, userid };
-
-  const { data: user, isLoading, error } = usePost("/getUser", body, userid);
-
-  useEffect(() => {
-    if (isLoading) return; // wait until the query is done
-
-    if (!user) {
-      alert("Gebruiker niet gevonden of niet ingelogd.");
-      window.location.replace("../#");
-      return;
-    }
-
-    if (user.privilege == null && privilege === 0) return;
-
-    if (user.privilege < privilege) {
-      alert("Je bent niet gemachtigd om deze pagina te bezoeken.");
-      window.location.replace("../#");
-    }
-  }, [isLoading, user, privilege]);
 }
 
 //post to given url

@@ -1,7 +1,8 @@
-import { post } from "./functions";
+import { useEffect } from "react";
+import { getCookie, post } from "./functions";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-export function usePost(url, body, key) {
+export function usePost(url, body, key, options = {}) {
   const queryClient = useQueryClient();
 
   const { data, error, isLoading } = useQuery({
@@ -10,6 +11,7 @@ export function usePost(url, body, key) {
       console.log("usePost fetching:", url, body);
       return await post(url, body, `useQuery ${key}`);
     },
+    enabled: options.enabled ?? true,
     staleTime: 1000 * 60, // cache valid for 1 minute
   });
 
@@ -33,4 +35,35 @@ export function useMutatePost(invalidateKey) {
   });
 
   return mutation;
+}
+
+//checks if user is privileged to the page
+export function useCheckUser() {
+  const url = window.location.href;
+  let privilege = 0;
+  if (url.includes("beheer/")) privilege = 2;
+  else if (url.includes("leerkracht/")) privilege = 1;
+
+  const sessionid = getCookie("sessionId");
+  const userid = getCookie("userId");
+  const body = { sessionid, userid };
+
+  const { data: user, isLoading } = usePost("/getUser", body, userid);
+
+  useEffect(() => {
+    if (isLoading) return; // wait until the query is done
+
+    if (!user) {
+      alert("Gebruiker niet gevonden of niet ingelogd.");
+      window.location.replace("../#");
+      return;
+    }
+
+    if (user.privilege == null && privilege === 0) return;
+
+    if (user.privilege < privilege) {
+      alert("Je bent niet gemachtigd om deze pagina te bezoeken.");
+      window.location.replace("../#");
+    }
+  }, [isLoading, user, privilege]);
 }

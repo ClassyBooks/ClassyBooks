@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import "../../App.css";
 import { Link } from "react-router-dom";
 import { getCookie } from "../../functions";
-import { usePost } from "../../hooks";
+import { usePost, useCheckUser } from "../../hooks";
 const classNames = require("classnames");
 
 function getCurrentURL() {
@@ -12,6 +12,8 @@ function getCurrentURL() {
 const TeacherNavbar = () => {
   const [admin, setAdmin] = useState(false);
   const currentUrl = getCurrentURL();
+
+  useCheckUser();
 
   var dashboard = classNames({
     lkNavbar: true,

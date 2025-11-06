@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import "../../App.css";
-import { getCookie, setTitle, post } from "../../functions";
+import { getCookie, setTitle } from "../../functions";
 import TeacherNavbar from "../teacher/teacherNavbar";
 import { useNavigate } from "react-router-dom";
 import Toolbar from "../../components/Toolbar";
+import { usePost } from "../../hooks";
 
 const Pupils = () => {
   const navigate = useNavigate();
@@ -17,12 +18,10 @@ const Pupils = () => {
   const [showAll, setShowAll] = useState(true);
   const [sort, setSort] = useState("name");
   const [sortDirection, setSortDirection] = useState("ascending");
-  const [material, setMaterial] = useState({});
   const [filter, setFilter] = useState("none");
   const [sortedClss, setSortedCllss] = useState([]);
   const [sortedReadingLvl, setSortedReadingLvl] = useState([]);
   const [filterdUsers, setFilterdUsers] = useState([]);
-  const [users, setUsers] = useState([]);
 
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -43,15 +42,17 @@ const Pupils = () => {
     setFilterdUsers(searchedUsers);
   };
 
+  const users = usePost(
+    "/allUsers",
+    { sessionId: getCookie("sessionId") },
+    "allUsers"
+  );
+
   useEffect(() => {
-    const fetchData = async () => {
-      const sessionId = getCookie("sessionId");
-      const body = { sessionId };
-      const response = await post("/allUsers", body, "teacher pupils");
-      const specifiedUsers = response.filter(function (user) {
+    if (users.data && !users.isLoading) {
+      const specifiedUsers = users?.data?.filter(function (user) {
         return user.privilege === 0;
       });
-      setUsers(specifiedUsers);
       setFilterdUsers(specifiedUsers);
 
       let readinglevels = [];
@@ -74,24 +75,25 @@ const Pupils = () => {
       });
       allClss.sort();
       setSortedCllss(allClss);
-    };
-    fetchData();
-  }, []);
+    }
+  }, [users]);
 
-  const HandleClick = () => {
-    const fetchData = async () => {
-      try {
-        const sessionid = getCookie("sessionId");
-        const body = { materialid: selectedUser.Users, sessionid };
-        const resp = await post("/getMaterial", body);
-        setMaterial(resp);
-      } catch (error) {
-        console.error(error);
-      }
-    };
+  const material = usePost(
+    "/getMaterial",
+    {
+      materialid: selectedUser?.materials[0],
+      sessionid: getCookie("sessionId"),
+    },
+    selectedUser?.materials?.[0],
+    {
+      enabled: !!selectedUser?.materials?.[0],
+    }
+  );
 
-    fetchData();
-  };
+  useEffect(() => {
+    if (material.isFetching) console.log("Fetching material...");
+    if (material.data) console.log("Fetched material:", material.data);
+  }, [material.isFetching, material.data]);
 
   if (!users) {
     return <div>Loading...</div>;
@@ -114,7 +116,7 @@ const Pupils = () => {
       }
     });
 
-    users = sortedUsers; // Update the sorted data
+    setFilterdUsers(sortedUsers);
   };
 
   const handleChangeDirection = (event) => {
@@ -135,7 +137,7 @@ const Pupils = () => {
       }
     });
 
-    users = sortedUsers; // Update the sorted data
+    setFilterdUsers(sortedUsers);
   };
 
   const handleChangeFilter = (event) => {
@@ -219,7 +221,6 @@ const Pupils = () => {
                 onClick={() => {
                   setSelectedUser(user);
                   setShowAll(false);
-                  HandleClick();
                 }}
                 className="item"
               >
@@ -229,6 +230,11 @@ const Pupils = () => {
           ) : (
             <div>
               <h2>{selectedUser.firstname + " " + selectedUser.lastname}</h2>
+              {selectedUser.materials.length >= 1 && !material.isLoading ? (
+                <h3>Heeft het boek, {material?.data[0].title}, uitgeleend</h3>
+              ) : (
+                <></>
+              )}
               <button className="button" onClick={() => handleChangeUser()}>
                 Bewerk {selectedUser.firstname}
               </button>
