@@ -19,62 +19,50 @@ export function getCookie(cookieName) {
 }
 
 //changes title
-export function Title(title) {
-  useEffect(() => {
-    document.title = "Classy Books - " + title;
-  });
-}
-
-//checks if user is privileged to the page
-export async function checkUser() {
-  const url = window.location.href;
-  let privilege = 0;
-  if (url.includes("beheer/")) {
-    privilege = 2;
-  } else if (url.includes("leerkracht/")) {
-    privilege = 1;
-  }
-  const sessionid = getCookie("sessionId");
-  const userid = getCookie("userId");
-  const body = { sessionid, userid };
-  const response = await post("/getUser", body, "checkuser", true);
-
-  if (response.privilege >= privilege) {
-  } else if (response.privilege == null && privilege === 0) {
-  } else {
-    alert("Je bent niet gemachtigd om deze pagina te bezoeken.");
-    window.location.replace("../#");
-  }
+export function setTitle(title) {
+  document.title = "Classy Books - " + title;
 }
 
 //post to given url
-export async function post(url, body, func) {
+export async function post(url, body = {}, func) {
   try {
     const response = await fetch(url, {
       method: "POST",
       body: JSON.stringify(body),
       headers: {
         "Content-Type": "application/json",
-        Function: func,
+        Function: func || "",
       },
     });
 
-    const respType = await response.headers.get("Content-Type");
-
-    let data;
+    const respType = response.headers.get("Content-Type") || "";
 
     if (respType.includes("application/json")) {
-      data = response.json();
-      if (response.statusText !== "OK") {
-        throw new Error(response);
+      const data = await response.json();
+      if (!response.ok) {
+        // response.statusText may be empty; include status too
+        throw new Error(`${response.status} ${response.statusText}`);
       }
+      return data;
     } else if (respType.includes("text")) {
-      data = response;
+      const text = await response.text();
+      if (!response.ok)
+        throw new Error(`${response.status} ${response.statusText}`);
+      return text;
+    } else {
+      // unknown content-type: try json then text fallback
+      try {
+        const maybeJson = await response.json();
+        return maybeJson;
+      } catch {
+        const maybeText = await response.text();
+        return maybeText;
+      }
     }
-
-    return data;
   } catch (error) {
-    console.error("Error:", error.message);
+    console.error("post() Error:", error);
+    // return null to make callers explicit about no data
+    return null;
   }
 }
 

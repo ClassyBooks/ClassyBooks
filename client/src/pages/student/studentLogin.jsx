@@ -1,11 +1,11 @@
 import { useState } from "react";
 import "../../App.css";
-import { post, Title, Toast } from "../../functions";
+import { post, setTitle, Toast } from "../../functions";
 import crypto from "crypto-js";
 import { useNavigate } from "react-router";
 
 const StudentLogin = () => {
-  Title("Leerling login");
+  setTitle("Leerling login");
 
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState(``);
@@ -18,7 +18,7 @@ const StudentLogin = () => {
   };
 
   const request = async (body) => {
-    const response = await post("/loginPupil", body, "student login", true);
+    const response = await post("/loginPupil", body, "student login");
     if (response.privilege !== 0) {
       setShowToast(true);
       setToastMessage(

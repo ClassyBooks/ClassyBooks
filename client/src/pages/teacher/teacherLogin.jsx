@@ -1,11 +1,11 @@
 import "../../App.css";
 import crypto from "crypto-js";
-import { post, Title, Toast } from "../../functions";
+import { post, setTitle, Toast } from "../../functions";
 import { useNavigate } from "react-router";
 import { useState } from "react";
 
 function TeacherLogin() {
-  Title("Leerkracht login");
+  setTitle("Leerkracht login");
 
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState(``);
@@ -19,7 +19,7 @@ function TeacherLogin() {
 
   const request = async (name, surname, sha256, md5) => {
     const body = { name, surname, sha256, md5 };
-    const response = await post("/loginTeacher", body, "teacher login", true);
+    const response = await post("/loginTeacher", body, "teacher login");
 
     document.cookie = "sessionId=" + response.sessionid + ";path=/";
     document.cookie = "userId=" + response.userid + ";path=/";
