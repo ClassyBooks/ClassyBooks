@@ -3,6 +3,7 @@
   "version": "alpha0.2",
   "private": true,
   "dependencies": {
+    "@emotion/styled": "^11.14.1",
     "@mui/material": "^7.3.5",
     "@tanstack/react-query": "^5.90.5",
     "cheerio": "^1.1.2",
