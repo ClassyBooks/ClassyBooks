@@ -3,7 +3,7 @@ import "../../App.css";
 import { Link } from "react-router-dom";
 import { getCookie } from "../../functions";
 import { usePost, useCheckUser } from "../../hooks";
-const classNames = require("classnames");
+import classNames from "classnames";
 
 function getCurrentURL() {
   return window.location.pathname;
