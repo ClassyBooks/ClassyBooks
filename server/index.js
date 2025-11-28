@@ -19,6 +19,27 @@ const classes = ["1A", "1B", "2A", "2B", "3A", "3B", "4A", "4B", "5A", "5B", "6A
 app.use(express.static(__dirname + "/../client/build/"));
 
 //-------------------------------------------------------------------------------API-REQUESTS-------//
+app.post('/teacherLendForStudent', async (req, res) => {
+  if (checkRequest(req)) {
+    const session = await getSession(req["body"]["sessionid"])
+    if (session !== null) {
+      const user = await request(`SELECT * FROM USERS WHERE USERID='${req["body"]["userid"]}'`)
+      if (hasData(user)) {
+        const sessionPriv = parseInt(session["privilege"])
+        if (sessionPriv >= 1) {
+          const pupil = await request(`SELECT * FROM USERS WHERE USERID='${req["body"]["pupilid"]}'`)
+          if (hasData(pupil)) {
+            const lend = await lendMaterial(pupilid, req['body'][materialid])
+            if (lend[0]) {
+              res.setHeader('Content-Type', 'text/plain')
+              res.status(200).send(lend[1])
+            } else { res.setHeader('Content-Type', 'text/plain'); res.status(400).send("Invalid request") }
+          } else res.status(400).send('Invalid pupil')
+        } else res.status(500).send()
+      } else res.status(400).send('Invalid teacher')
+    } else res.status(400).send("Invalid teacher")
+  } else res.status(400).send('Invalid request')
+})
 app.get('/dbRework', async (req, res) => {
   if (checkRequest(req)) {
     const resp = reworkDb()
@@ -623,16 +644,16 @@ async function addPupilWithPass(name, surname, password, clsNum, clss, privilege
   await addPupilWithHash(name, surname, clsNum, clss, privilege, hashes[0], hashes[1], materials, history, readinglevel)
 }
 //----------------------------------------------------------------------------DATABASE-FUNCTIONS----//
-async function reworkDb(){
+async function reworkDb() {
   let materials = await request("SELECT * FROM MATERIALS")
   let state = true
   console.log(materials[0])
-  for (let m of materials[0]){
-    const resp = await request('UPDATE materials SET author="'+m[descr][author]+'", readinglevel="'+m[descr][readinglevel]+'",cover="'+m[descr]['cover']+'",pages='+m[descr][pages]+' WHERE materialid='+m[materialid]+';')
-    if (requestSucceeded(resp)){
-      console.log("Updated "+m[materialid])
+  for (let m of materials[0]) {
+    const resp = await request('UPDATE materials SET author="' + m[descr][author] + '", readinglevel="' + m[descr][readinglevel] + '",cover="' + m[descr]['cover'] + '",pages=' + m[descr][pages] + ' WHERE materialid=' + m[materialid] + ';')
+    if (requestSucceeded(resp)) {
+      console.log("Updated " + m[materialid])
     } else {
-      console.log("Failed to update "+m[materialid])
+      console.log("Failed to update " + m[materialid])
       state = false
     }
   }
