@@ -92,22 +92,32 @@ app.get("/getMaterialssReadinglvls", async (req, res) => {
 })
 
 const storage = multer.diskStorage({
-  destination: function (req, file, callback) {
-
-    callback(null, "./server/uploads")
+  destination(req, file, cb) {
+    cb(null, "./server/uploads");
   },
-  filename: function (req, file, callback) {
-    let imgid = "img-" + uuidv4()
-    let extension = file.originalname.split(".").splice(-1)[0]
-    if (["png", "jpg", "jpeg", "gif", "bmp", "tif"].includes(extension.toLowerCase())) {
-      callback(null, `${imgid}.${extension}`)
-    } else {
-      callback(null, "badfile")
-    }
-
+  filename(req, file, cb) {
+    const imgid = "img-" + uuidv4();
+    const extension = file.originalname.split(".").pop().toLowerCase();
+    cb(null, `${imgid}.${extension}`);
   }
-})
-var upload = multer({ storage: storage })
+});
+
+function fileFilter(req, file, cb) {
+  const allowed = ["png", "jpg", "jpeg", "gif", "bmp", "tif"];
+  const ext = file.originalname.split(".").pop().toLowerCase();
+
+  if (!allowed.includes(ext)) {
+    return cb(new Error("Only image files are allowed"), false);
+  }
+
+  cb(null, true);
+}
+
+const upload = multer({
+  storage,
+  fileFilter
+});
+
 
 app.post("/uploadimg", upload.single('uploaded_file'), (req, res) => {
   try {

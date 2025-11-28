@@ -1,7 +1,5 @@
 import "./App.css";
-import fetch from "node-fetch";
 import { useEffect, useState } from "react";
-const cheerio = require("cheerio");
 
 //extracs cookie zith given name
 export function getCookie(cookieName) {
@@ -143,16 +141,20 @@ export async function getISBN(isbn) {
   try {
     const resp = await post("/getBibInfo", { isbn });
     const htmlResp = await resp.text();
-    const $ = cheerio.load(await htmlResp);
 
-    // Extract the title
-    const title = $("h3.catalog-item-title").text().trim();
+    // Parse HTML string into a DOM
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlResp, "text/html");
 
-    // Extract the authors
-    const authors = [];
-    $("div.catalog-item__authors a").each((i, el) => {
-      authors.push($(el).text().trim());
-    });
+    // Extract title
+    const titleElement = doc.querySelector("h3.catalog-item-title");
+    const title = titleElement ? titleElement.textContent.trim() : "";
+
+    // Extract authors
+    const authors = Array.from(
+      doc.querySelectorAll("div.catalog-item__authors a")
+    ).map((a) => a.textContent.trim());
+
     return { title, authors };
   } catch (error) {
     console.error(

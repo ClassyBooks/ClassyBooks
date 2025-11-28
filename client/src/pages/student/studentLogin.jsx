@@ -2,7 +2,7 @@ import { useState } from "react";
 import "../../App.css";
 import { post, setTitle, Toast } from "../../functions";
 import crypto from "crypto-js";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 
 const StudentLogin = () => {
   setTitle("Leerling login");

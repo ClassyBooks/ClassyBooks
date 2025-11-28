@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import "../../App.css";
 import crypto from "crypto-js";
 import { getCookie, setTitle, post, Toast } from "../../functions";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import TeacherNavbar from "../teacher/teacherNavbar";
 
 function AddUser() {

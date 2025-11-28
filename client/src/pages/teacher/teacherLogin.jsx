@@ -1,7 +1,7 @@
 import "../../App.css";
 import crypto from "crypto-js";
 import { post, setTitle, Toast } from "../../functions";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
 function TeacherLogin() {

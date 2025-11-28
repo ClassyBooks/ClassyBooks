@@ -1,9 +1,9 @@
 import "../App.css";
 import { useNavigate } from "react-router-dom";
-import { getCookie, post } from "../functions.js";
+import { getCookie, post } from "../functions";
 import { useEffect, useState } from "react";
-import { usePost } from "../hooks.js";
-const logo_long = require("../art/logo_long.png");
+import { usePost } from "../hooks";
+import logo_long from "../art/logo_long.png";
 
 const Navbar = () => {
   const [user, setUser] = useState(null);
