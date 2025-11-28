@@ -2,10 +2,6 @@ name: Pull Request CI
 
 on: pull_request
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   Build:
     name: Build
@@ -14,14 +10,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Enable Corepack
+        run: corepack enable
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          cache: 'npm'
+          node-version: "22"
+          cache: "yarn"
 
       - name: Install dependencies
-        run: npm install
+        run: yarn install --immutable
 
       - name: Build
-        run: npm run build
+        run: yarn build
