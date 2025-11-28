@@ -1,0 +1,13 @@
+on: pull_request
+name: Pull Request CI
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  Build:
+    name: Build
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: ./.github/actions/setup_node
+      - run: npm run build
