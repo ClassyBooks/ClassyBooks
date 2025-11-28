@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import "../../App.css";
 import { getCookie, setTitle, post, Toast } from "../../functions";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import TeacherNavbar from "../teacher/teacherNavbar";
 import Toolbar from "../../components/Toolbar";
 import { usePost, useMutatePost } from "../../hooks";

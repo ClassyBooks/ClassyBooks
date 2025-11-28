@@ -1,47 +1,4 @@
-const webpack = require("webpack");
-
 module.exports = {
-  webpack: function override(config, env) {
-    config.resolve.fallback = {
-      url: require.resolve("url"),
-      fs: require.resolve("graceful-fs"),
-      buffer: require.resolve("buffer"),
-      stream: require.resolve("stream-browserify"),
-      "process/browser": require.resolve("process/browser"),
-      util: require.resolve("util/"),
-      constants: require.resolve("constants-browserify"),
-      assert: require.resolve("assert/"),
-    };
-
-    config.plugins.push(
-      new webpack.ProvidePlugin({
-        process: "process/browser",
-      }),
-
-      new webpack.ProvidePlugin({
-        Buffer: ["buffer", "Buffer"],
-      }),
-
-      new webpack.NormalModuleReplacementPlugin(/node:/, (resource) => {
-        const mod = resource.request.replace(/^node:/, "");
-        switch (mod) {
-          case "buffer":
-            resource.request = "buffer";
-            break;
-          case "stream":
-            resource.request = "readable-stream";
-            break;
-          default:
-            throw new Error(`Not found ${mod}`);
-        }
-      })
-    );
-
-    config.ignoreWarnings = [/Failed to parse source map/];
-
-    return config;
-  },
-
   devServer: function (configFunction) {
     return function (proxy, allowedHost) {
       const config = configFunction(proxy, allowedHost);

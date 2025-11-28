@@ -1,5 +1,5 @@
+import { useNavigate } from "react-router-dom";
 import "../App.css";
-import { useNavigate } from "react-router";
 import { setTitle } from "../functions";
 
 const UserTyperChoise = () => {
