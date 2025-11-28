@@ -4,9 +4,9 @@
   "email": "jasperdegus@gmail.com",
   "main": "index.js",
   "scripts": {
-    "build": "cd client && npm i && npm run build",
+    "build": "cd client && yarn && yarn run build",
     "run": "node ./server/index.js",
-    "start": "cd client && npm start"
+    "start": "cd client && yarn start"
   },
   "repository": {
     "type": "git",
