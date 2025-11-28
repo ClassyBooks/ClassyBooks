@@ -1,7 +1,7 @@
 import "./App.css";
 import fetch from "node-fetch";
 import { useEffect, useState } from "react";
-const cheerio = require("cheerio");
+import * as cheerio from "cheerio";
 
 //extracs cookie zith given name
 export function getCookie(cookieName) {
