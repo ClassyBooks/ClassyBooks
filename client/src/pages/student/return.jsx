@@ -95,7 +95,7 @@ const ReturnBooks = () => {
               value={rating}
               max={4}
               onChange={(event, newValue) => {
-                setRating(newValue + 0.0);
+                setRating(newValue);
               }}
             />
             <input
