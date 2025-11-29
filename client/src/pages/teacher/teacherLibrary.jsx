@@ -4,9 +4,17 @@ import TeacherNavbar from "./teacherNavbar";
 import { setTitle } from "../../functions";
 import Toolbar from "../../components/Toolbar";
 import { usePost } from "../../hooks";
-import { redirect, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const TeacherLib = () => {
+
+  const navigate = useNavigate();
+
+  const redirectToPage = (path) => {
+    navigate(path); // Use navigate to go to the specified path
+  };
+
+
   setTitle("Bibliotheek");
   const [filterdBooks, setFilterdBooks] = useState(null);
   const [showAll, setShowAll] = useState(true);
@@ -156,15 +164,9 @@ const TeacherLib = () => {
     setFilterdBooks(searchedBooks);
   };
 
-  const navigateTo = useNavigate();
-
-  function redirectToPage(path) {
-    navigateTo(path);
-  };
-
   function handleLend() {
     document.cookie = `lendMaterial=${selectedBook.materialid}; path=/`;
-    redirectToPage("/teacher/lendOut");
+    redirectToPage("/leerkracht/uitlenen");
   }
 
   return (

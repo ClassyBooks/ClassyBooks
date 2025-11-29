@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import "../../App.css";
-import { getCookie, setTitle } from "../../functions";
+import { getCookie, post, setTitle } from "../../functions";
 import TeacherNavbar from "../teacher/teacherNavbar";
 import { useNavigate } from "react-router-dom";
 import Toolbar from "../../components/Toolbar";
@@ -14,7 +14,7 @@ const TeacherLend = () => {
   };
   setTitle("Uitlenen");
 
-  const [selectedUser, setSelectedUser] = useState(null); 
+  const [selectedUser, setSelectedUser] = useState(null);
   const [sort, setSort] = useState("name");
   const [sortDirection, setSortDirection] = useState("ascending");
   const [filter, setFilter] = useState("none");
@@ -42,7 +42,7 @@ const TeacherLend = () => {
   };
 
   const users = usePost(
-    "/allUsers",
+    "/api/allUsers",
     { sessionId: getCookie("sessionId") },
     "allUsers"
   );
@@ -77,27 +77,24 @@ const TeacherLend = () => {
     }
   }, [users]);
 
-  function LendTo(user) {
+
+  async function LendTo(user) {
     const userid = getCookie("userId")
     const pupilid = user.userid
     const materialid = getCookie("lendMaterial")
-    
-    async function lendMaterial() {
-      const resp = await post("/lendMaterial", { materialid, userid: pupilid, sessionid: getCookie("sessionId") });
-      if (resp.success) {
-        redirectToPage("/teacher/library");
-      } else {
-        alert("Er is iets misgegaan bij het uitlenen van het materiaal.");
-      }
+
+    console.log('lendto')
+
+
+    const resp = await post("/api/teacherLendForStudent", { materialid, userid, pupilid, sessionid: getCookie("sessionId") });
+    console.log(await resp)
+    const timeString = new Date(resp)
+    if (timeString == 'Invalid Date') {
+      alert("Er is iets misgegaan bij het uitlenen van het materiaal.");
+    } else {
+      redirectToPage("/leerkracht/bibliotheek");
     }
-
   }
-
-
-  useEffect(() => {
-    if (material.isFetching) console.log("Fetching material...");
-    if (material.data) console.log("Fetched material:", material.data);
-  }, [material.isFetching, material.data]);
 
   if (!users) {
     return <div>Loading...</div>;
@@ -215,18 +212,18 @@ const TeacherLend = () => {
           ]}
         />
         <div className="itemList">
-            {filterdUsers.map((user) => (
-              <li
-                key={user.userid}
-                onClick={() => {
-                  LendTo(user);
-                }}
-                className="item"
-              >
-                <h3>{user.firstname + " " + user.lastname}</h3>
-              </li>
-            ))
-          } 
+          {filterdUsers.map((user) => (
+            <li
+              key={user.userid}
+              onClick={() => {
+                LendTo(user);
+              }}
+              className="item"
+            >
+              <h3>{user.firstname + " " + user.lastname}</h3>
+            </li>
+          ))
+          }
         </div>
       </div>
     </div>
