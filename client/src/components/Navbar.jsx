@@ -14,7 +14,7 @@ const Navbar = () => {
   };
   function handleLogOut() {
     const body = { sessionId: getCookie("sessionId") };
-    post("/logout", body, "navbar");
+    post("/api/logout", body, "navbar");
     document.cookie.split(";").forEach(function (c) {
       document.cookie = c
         .replace(/^ +/, "")
@@ -39,7 +39,7 @@ const Navbar = () => {
   const userid = getCookie("userId");
 
   const { data: response } = usePost(
-    "/getUser",
+    "/api/getUser",
     { sessionid, userid },
     userid || "anonymous" // fallback key to keep hook order stable
   );

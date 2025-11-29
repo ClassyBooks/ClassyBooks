@@ -201,7 +201,7 @@ const JsonImport = () => {
             }
             body.classNum = parseInt(body.classNum)
             body.privilege = parseInt(body.privilege)
-            await post('/createUser', body)
+            await post('/api/createUser', body)
         }
 
         setShowToast(true)
@@ -254,7 +254,7 @@ const JsonImport = () => {
                 if (e === `Leesniveau`) body.description.readinglevel = element[i]
             }
             console.log(body)
-            console.log(await post('/createMaterial', body))
+            console.log(await post('/api/createMaterial', body))
         }
 
         setShowToast(true)

@@ -4,8 +4,17 @@ import TeacherNavbar from "./teacherNavbar";
 import { setTitle } from "../../functions";
 import Toolbar from "../../components/Toolbar";
 import { usePost } from "../../hooks";
+import { useNavigate } from "react-router-dom";
 
 const TeacherLib = () => {
+
+  const navigate = useNavigate();
+
+  const redirectToPage = (path) => {
+    navigate(path); // Use navigate to go to the specified path
+  };
+
+
   setTitle("Bibliotheek");
   const [filterdBooks, setFilterdBooks] = useState(null);
   const [showAll, setShowAll] = useState(true);
@@ -15,9 +24,9 @@ const TeacherLib = () => {
   const [filter, setFilter] = useState("none");
   const [locations, setLocations] = useState([]);
   const [readinglevels, setReadinglevels] = useState([]);
-  const [searchQuery, setSearchQuery] = useState(""); // New search state
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const books = usePost("/allMaterials", {}, "allMaterials");
+  const books = usePost("/api/allMaterials", {}, "allMaterials");
   useEffect(() => {
     if (books.data && !books.isLoading) {
       setFilterdBooks(books.data);
@@ -155,6 +164,11 @@ const TeacherLib = () => {
     setFilterdBooks(searchedBooks);
   };
 
+  function handleLend() {
+    document.cookie = `lendMaterial=${selectedBook.materialid}; path=/`;
+    redirectToPage("/leerkracht/uitlenen");
+  }
+
   return (
     <div>
       <div>
@@ -231,6 +245,7 @@ const TeacherLib = () => {
                 ? `Is uitgeleend door: ${selectedBook.lendoutto}`
                 : ""}
             </p>
+            <button className="button" onClick={() => handleLend()}>Leen uit voor een leerling</button>
             <button onClick={() => setShowAll(true)} className="button">
               Toon alle boeken
             </button>

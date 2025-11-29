@@ -1,21 +1,20 @@
 import { useState, useEffect } from "react";
 import "../../App.css";
-import { getCookie, setTitle } from "../../functions";
+import { getCookie, post, setTitle } from "../../functions";
 import TeacherNavbar from "../teacher/teacherNavbar";
 import { useNavigate } from "react-router-dom";
 import Toolbar from "../../components/Toolbar";
 import { usePost } from "../../hooks";
 
-const Pupils = () => {
+const TeacherLend = () => {
   const navigate = useNavigate();
 
   const redirectToPage = (path) => {
     navigate(path); // Use navigate to go to the specified path
   };
-  setTitle("Leerlingen");
+  setTitle("Uitlenen");
 
   const [selectedUser, setSelectedUser] = useState(null);
-  const [showAll, setShowAll] = useState(true);
   const [sort, setSort] = useState("name");
   const [sortDirection, setSortDirection] = useState("ascending");
   const [filter, setFilter] = useState("none");
@@ -78,22 +77,24 @@ const Pupils = () => {
     }
   }, [users]);
 
-  const material = usePost(
-    "/api/getMaterial",
-    {
-      materialid: selectedUser?.materials[0],
-      sessionid: getCookie("sessionId"),
-    },
-    selectedUser?.materials?.[0],
-    {
-      enabled: !!selectedUser?.materials?.[0],
-    }
-  );
 
-  useEffect(() => {
-    if (material.isFetching) console.log("Fetching material...");
-    if (material.data) console.log("Fetched material:", material.data);
-  }, [material.isFetching, material.data]);
+  async function LendTo(user) {
+    const userid = getCookie("userId")
+    const pupilid = user.userid
+    const materialid = getCookie("lendMaterial")
+
+    console.log('lendto')
+
+
+    const resp = await post("/api/teacherLendForStudent", { materialid, userid, pupilid, sessionid: getCookie("sessionId") });
+    console.log(await resp)
+    const timeString = new Date(resp)
+    if (timeString == 'Invalid Date') {
+      alert("Er is iets misgegaan bij het uitlenen van het materiaal.");
+    } else {
+      redirectToPage("/leerkracht/bibliotheek");
+    }
+  }
 
   if (!users) {
     return <div>Loading...</div>;
@@ -163,10 +164,7 @@ const Pupils = () => {
     if (selectedFilter === "none") setFilterdUsers(users);
   };
 
-  const handleChangeUser = () => {
-    document.cookie = "changeUser=" + selectedUser.userid + ";path=/";
-    redirectToPage("bewerken");
-  };
+
   return (
     <div>
       <nav>
@@ -214,39 +212,22 @@ const Pupils = () => {
           ]}
         />
         <div className="itemList">
-          {showAll ? (
-            filterdUsers.map((user) => (
-              <li
-                key={user.userid}
-                onClick={() => {
-                  setSelectedUser(user);
-                  setShowAll(false);
-                }}
-                className="item"
-              >
-                <h3>{user.firstname + " " + user.lastname}</h3>
-              </li>
-            ))
-          ) : (
-            <div>
-              <h2>{selectedUser.firstname + " " + selectedUser.lastname}</h2>
-              {selectedUser.materials.length >= 1 && !material.isLoading ? (
-                <h3>Heeft het boek, {material?.data[0].title}, uitgeleend</h3>
-              ) : (
-                <></>
-              )}
-              <button className="button" onClick={() => handleChangeUser()}>
-                Bewerk {selectedUser.firstname}
-              </button>
-              <button onClick={() => setShowAll(true)} className="button">
-                Toon alle gebruikers
-              </button>
-            </div>
-          )}
+          {filterdUsers.map((user) => (
+            <li
+              key={user.userid}
+              onClick={() => {
+                LendTo(user);
+              }}
+              className="item"
+            >
+              <h3>{user.firstname + " " + user.lastname}</h3>
+            </li>
+          ))
+          }
         </div>
       </div>
     </div>
   );
 };
 
-export default Pupils;
+export default TeacherLend;

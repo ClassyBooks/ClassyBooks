@@ -20,7 +20,7 @@ const ManageUsers = () => {
     isLoading,
     error,
     invalidate: refetchUsers,
-  } = usePost("/allUsers", { sessionId }, "allUsers");
+  } = usePost("/api/allUsers", { sessionId }, "allUsers");
 
   // ✅ Mutations for fetching data on demand
   const { mutateAsync: fetchUser } = useMutatePost("allUsers");
@@ -142,7 +142,7 @@ const ManageUsers = () => {
     let selected = queryClient.getQueryData(["user", user.userid]);
     if (!selected) {
       selected = await fetchUser({
-        url: "/getUser",
+        url: "/api/getUser",
         body: { sessionid: sessionId, userid: user.userid },
         key: ["user", user.userid],
       });
@@ -157,7 +157,7 @@ const ManageUsers = () => {
       const cached = queryClient.getQueryData(cacheKey);
       if (cached) return cached.title;
       const data = await fetchMaterial({
-        url: "/getMaterial",
+        url: "/api/getMaterial",
         body: { sessionid: sessionId, materialid: materialId },
         key: cacheKey,
       });
@@ -191,7 +191,7 @@ const ManageUsers = () => {
   const deleteUser = async (userId) => {
     if (!window.confirm("Weet u zeker dat u deze gebruiker wilt verwijderen?"))
       return;
-    await post("/removeUser", { sessionId, userId });
+    await post("/api/removeUser", { sessionId, userId });
     await refetchUsers();
     setToastMessage("Gebruiker succesvol verwijderd.");
     setToastType("success");

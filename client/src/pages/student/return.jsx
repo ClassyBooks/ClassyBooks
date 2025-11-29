@@ -20,9 +20,9 @@ const ReturnBooks = () => {
 
   const userid = getCookie("userId");
   const sessionid = getCookie("sessionId");
-  const { data: user } = usePost("/getUser", { userid, sessionid }, userid);
+  const { data: user } = usePost("/api/getUser", { userid, sessionid }, userid);
   const { data: book } = usePost(
-    "/getMaterial",
+    "/api/getMaterial",
     { materialid: user?.materials[0], sessionid },
     user?.materials[0]
   );
@@ -54,7 +54,7 @@ const ReturnBooks = () => {
           "/4?"
       )
     ) {
-      const resp = await post("/returnMaterial", body);
+      const resp = await post("/api/returnMaterial", body);
       console.log(resp);
       if (resp.status === 200) {
         setShowToast(true);

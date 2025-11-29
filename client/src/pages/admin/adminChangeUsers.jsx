@@ -20,7 +20,7 @@ const AdminChangeUser = () => {
     isLoading,
     error,
     invalidate,
-  } = usePost("/getUser", body, userid);
+  } = usePost("/api/getUser", body, userid);
 
   setTitle(`Bewerk gebruiker ${user?.firstname ?? ""} ${user?.lastname ?? ""}`);
 
@@ -43,7 +43,7 @@ const AdminChangeUser = () => {
     const keys = ["firstname", "lastname", "class", "classnum", "readinglevel"];
     const values = [newName, newSurname, newClss, newNum, newReadinglvl];
     const resp = await post(
-      "/changeUser",
+      "/api/changeUser",
       { sessionid, userid: user.userid, keys, values },
       "changeUser"
     );

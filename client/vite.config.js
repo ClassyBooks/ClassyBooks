@@ -6,4 +6,9 @@ export default defineConfig({
   build: {
     outDir: "build", // CRA's default build output
   },
+  server: {
+    proxy: {
+      "/api": { target: "http://localhost:8080", changeOrigin: true, secure: false },
+    },
+  },
 });

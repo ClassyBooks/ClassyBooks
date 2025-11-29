@@ -19,7 +19,7 @@ function TeacherLogin() {
 
   const request = async (name, surname, sha256, md5) => {
     const body = { name, surname, sha256, md5 };
-    const response = await post("/loginTeacher", body, "teacher login");
+    const response = await post("/api/loginTeacher", body, "teacher login");
 
     document.cookie = "sessionId=" + response.sessionid + ";path=/";
     document.cookie = "userId=" + response.userid + ";path=/";

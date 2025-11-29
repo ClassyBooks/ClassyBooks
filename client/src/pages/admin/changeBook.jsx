@@ -17,7 +17,7 @@ const ChangeMaterial = () => {
     sessionid: getCookie("sessionId"),
     materialid: getCookie("changeMaterial"),
   };
-  const { data, isLoading } = usePost("/getMaterial", body, body.materialid);
+  const { data, isLoading } = usePost("/api/getMaterial", body, body.materialid);
 
   const { mutateAsync } = useMutatePost(body.materialid);
 

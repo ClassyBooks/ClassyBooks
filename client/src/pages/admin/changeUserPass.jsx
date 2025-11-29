@@ -56,7 +56,7 @@ const ChangeUserPass = () => {
             '"'
         )
       ) {
-        const resp = await post("/changePassword", body);
+        const resp = await post("/api/changePassword", body);
         if (resp === "Changed password") {
           setShowToast(true);
           setToastMessage(`Wachtwoord succesvol veranderd.`);
@@ -72,7 +72,7 @@ const ChangeUserPass = () => {
 
   const body = { sessionid, userid };
 
-  const { data: user, isLoading } = usePost("/getUser", body, userid);
+  const { data: user, isLoading } = usePost("/api/getUser", body, userid);
 
   if (!user && isLoading) {
     return <div>Loading...</div>;
