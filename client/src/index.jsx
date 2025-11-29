@@ -27,6 +27,7 @@ import TeacherChangeUser from "./pages/teacher/teacherChangeUsers";
 import JsonImport from "./pages/admin/jsonimport";
 import ChangeMaterial from "./pages/admin/changeBook";
 import AdminChangeUser from "./pages/admin/adminChangeUsers";
+import TeacherLend from "./pages/teacher/teacherLend";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +53,7 @@ root.render(
             path="leerkracht/leerlingen/bewerken"
             element={<TeacherChangeUser />}
           />
+          <Route path="leerkracht/uitlenen" element={<TeacherLend />} />
 
           <Route path="beheer/gebruiker-toevoegen" element={<AddUser />} />
           <Route path="beheer/gebruikers-beheren" element={<ManageUsers />} />
@@ -79,6 +81,6 @@ root.render(
           <Route path="leerling/lever-in" element={<ReturnBooks />} />
         </Route>
       </Routes>
-    </BrowserRouter>  
+    </BrowserRouter>
   </QueryClientProvider>
 );

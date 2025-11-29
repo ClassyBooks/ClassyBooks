@@ -4,6 +4,7 @@ import TeacherNavbar from "./teacherNavbar";
 import { setTitle } from "../../functions";
 import Toolbar from "../../components/Toolbar";
 import { usePost } from "../../hooks";
+import { redirect, useNavigate } from "react-router-dom";
 
 const TeacherLib = () => {
   setTitle("Bibliotheek");
@@ -15,7 +16,7 @@ const TeacherLib = () => {
   const [filter, setFilter] = useState("none");
   const [locations, setLocations] = useState([]);
   const [readinglevels, setReadinglevels] = useState([]);
-  const [searchQuery, setSearchQuery] = useState(""); // New search state
+  const [searchQuery, setSearchQuery] = useState(""); 
 
   const books = usePost("/allMaterials", {}, "allMaterials");
   useEffect(() => {
@@ -155,6 +156,17 @@ const TeacherLib = () => {
     setFilterdBooks(searchedBooks);
   };
 
+  const navigateTo = useNavigate();
+
+  function redirectToPage(path) {
+    navigateTo(path);
+  };
+
+  function handleLend() {
+    document.cookie = `lendMaterial=${selectedBook.materialid}; path=/`;
+    redirectToPage("/teacher/lendOut");
+  }
+
   return (
     <div>
       <div>
@@ -231,6 +243,7 @@ const TeacherLib = () => {
                 ? `Is uitgeleend door: ${selectedBook.lendoutto}`
                 : ""}
             </p>
+            <button className="button" onClick={() => handleLend()}>Leen uit voor een leerling</button>
             <button onClick={() => setShowAll(true)} className="button">
               Toon alle boeken
             </button>
