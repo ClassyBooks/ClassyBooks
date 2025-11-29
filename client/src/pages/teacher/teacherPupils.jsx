@@ -43,7 +43,7 @@ const Pupils = () => {
   };
 
   const users = usePost(
-    "/allUsers",
+    "/api/allUsers",
     { sessionId: getCookie("sessionId") },
     "allUsers"
   );
@@ -79,7 +79,7 @@ const Pupils = () => {
   }, [users]);
 
   const material = usePost(
-    "/getMaterial",
+    "/api/getMaterial",
     {
       materialid: selectedUser?.materials[0],
       sessionid: getCookie("sessionId"),

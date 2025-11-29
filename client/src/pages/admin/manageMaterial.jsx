@@ -36,17 +36,17 @@ const ManageMaterials = () => {
     isLoading,
     error,
     invalidate,
-  } = usePost("/allMaterials", {}, "allMaterials");
+  } = usePost("/api/allMaterials", {}, "allMaterials");
 
   const { data: bookResponse, isLoading: isBookLoading } = usePost(
-    "/getMaterial",
+    "/api/getMaterial",
     { materialid: selectedBookId, sessionid: getCookie("sessionId") },
     selectedBookId,
     { enabled: !!selectedBookId }
   );
 
   const { data: lenderResponse } = usePost(
-    "/getUser",
+    "/api/getUser",
     { userid: userId, sessionid: getCookie("sessionId") },
     userId,
     { enabled: !!userId }
@@ -108,7 +108,7 @@ const ManageMaterials = () => {
     const sessionId = getCookie("sessionId");
     const body = { sessionId, materialid };
     if (window.confirm("Weet u zeker dat u dit boek wilt verwijderen?")) {
-      await post("/removeMaterial", body);
+      await post("/api/removeMaterial", body);
       reloadPage();
 
       setShowToast(true);

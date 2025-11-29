@@ -10,9 +10,9 @@ const Dashboard = () => {
   const [checkedOut, setCheckedOut] = useState(0);
   const [overdue, setOverdue] = useState(0);
 
-  const books = usePost("/allMaterials", {}, "allMaterials");
+  const books = usePost("/api/allMaterials", {}, "allMaterials");
   const users = usePost(
-    "/allUsers",
+    "/api/allUsers",
     { sessionId: getCookie("sessionId") },
     "allUsers"
   );

@@ -20,7 +20,7 @@ const TeacherChangeUser = () => {
   }
 
   const user = usePost(
-    "/getUser",
+    "/api/getUser",
     { sessionid: getCookie("sessionId"), userid: getCookie("changeUser") },
     getCookie("changeUser")
   );

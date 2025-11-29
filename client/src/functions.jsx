@@ -70,7 +70,7 @@ export async function changePassword(sha256, md5, newSha256, newMd5) {
   const userid = getCookie("userId");
 
   const body = { sessionId, userid, sha256, md5, newSha256, newMd5 };
-  const resp = await post("/changePassword", body);
+  const resp = await post("/api/changePassword", body);
 
   if (resp === "Changed password") {
     return true;
@@ -139,7 +139,7 @@ export async function getISBN(isbn) {
   }
 
   try {
-    const resp = await post("/getBibInfo", { isbn });
+    const resp = await post("/api/getBibInfo", { isbn });
     const htmlResp = await resp.text();
 
     // Parse HTML string into a DOM

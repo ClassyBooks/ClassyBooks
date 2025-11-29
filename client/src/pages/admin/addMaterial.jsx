@@ -42,7 +42,7 @@ const AddMaterial = () => {
       setToastMessage(`Je moet de velden Titel, Locatie en Auteur invullen`);
       setToastType(`error`);
     } else {
-      const resp = await post("/createMaterial", body);
+      const resp = await post("/api/createMaterial", body);
       if (resp.status === 200) {
         setShowToast(true);
         setToastMessage(`Boek succesvol toegevoegd`);
@@ -128,7 +128,7 @@ const AddMaterial = () => {
     let [, , , uploaded_img] = document.forms[0];
     let data = new FormData();
     data.append("uploaded_file", uploaded_img.files[0]);
-    let resp = await fetch("/uploadimg", {
+    let resp = await fetch("/api/uploadimg", {
       method: "POST",
       body: data,
       "content-type": "multipart/form-data",

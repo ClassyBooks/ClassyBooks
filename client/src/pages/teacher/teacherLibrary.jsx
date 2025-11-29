@@ -24,9 +24,9 @@ const TeacherLib = () => {
   const [filter, setFilter] = useState("none");
   const [locations, setLocations] = useState([]);
   const [readinglevels, setReadinglevels] = useState([]);
-  const [searchQuery, setSearchQuery] = useState(""); 
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const books = usePost("/allMaterials", {}, "allMaterials");
+  const books = usePost("/api/allMaterials", {}, "allMaterials");
   useEffect(() => {
     if (books.data && !books.isLoading) {
       setFilterdBooks(books.data);

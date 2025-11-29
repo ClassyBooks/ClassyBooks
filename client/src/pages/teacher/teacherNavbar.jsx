@@ -52,7 +52,7 @@ const TeacherNavbar = () => {
   const userid = getCookie("userId");
 
   const { data: response } = usePost(
-    "/getUser",
+    "/api/getUser",
     { sessionid, userid },
     userid || "anonymous" // fallback key to keep hook order stable
   );

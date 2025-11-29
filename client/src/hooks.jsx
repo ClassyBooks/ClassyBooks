@@ -48,22 +48,30 @@ export function useCheckUser() {
   const userid = getCookie("userId");
   const body = { sessionid, userid };
 
-  const { data: user, isLoading } = usePost("/getUser", body, userid);
+  // Use a stable key + only run once userid exists
+  const { data: user, isLoading } = usePost(
+    "/api/getUser",
+    body,
+    "getUser",
+    { enabled: !!userid }
+  );
 
   useEffect(() => {
-    if (isLoading) return; // wait until the query is done
+    if (!userid) return; // prevent running early
 
-    if (!user) {
+    if (!user && !isLoading) {
       alert("Gebruiker niet gevonden of niet ingelogd.");
       window.location.replace("../#");
       return;
     }
+    else if (user) {
+      if (user.privilege == null && privilege === 0) return;
 
-    if (user.privilege == null && privilege === 0) return;
-
-    if (user.privilege < privilege) {
-      alert("Je bent niet gemachtigd om deze pagina te bezoeken.");
-      window.location.replace("../#");
+      if (user.privilege < privilege) {
+        alert("Je bent niet gemachtigd om deze pagina te bezoeken.");
+        window.location.replace("../#");
+      }
     }
-  }, [isLoading, user, privilege]);
+  }, [isLoading, user, privilege, userid]);
 }
+

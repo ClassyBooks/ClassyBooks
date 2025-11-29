@@ -19,7 +19,7 @@ const classes = ["1A", "1B", "2A", "2B", "3A", "3B", "4A", "4B", "5A", "5B", "6A
 app.use(express.static(__dirname + "/../client/build/"));
 
 //-------------------------------------------------------------------------------API-REQUESTS-------//
-app.post('/teacherLendForStudent', async (req, res) => {
+app.post('/api/teacherLendForStudent', async (req, res) => { // body = {userid, pupilid, materialid, sessionid}
   if (checkRequest(req)) {
     const session = await getSession(req["body"]["sessionid"])
     if (session !== null) {
@@ -29,7 +29,7 @@ app.post('/teacherLendForStudent', async (req, res) => {
         if (sessionPriv >= 1) {
           const pupil = await request(`SELECT * FROM USERS WHERE USERID='${req["body"]["pupilid"]}'`)
           if (hasData(pupil)) {
-            const lend = await lendMaterial(pupilid, req['body'][materialid])
+            const lend = await lendMaterial(req["body"]["pupilid"], req['body']["materialid"])
             if (lend[0]) {
               res.setHeader('Content-Type', 'text/plain')
               res.status(200).send(lend[1])
@@ -40,13 +40,13 @@ app.post('/teacherLendForStudent', async (req, res) => {
     } else res.status(400).send("Invalid teacher")
   } else res.status(400).send('Invalid request')
 })
-app.get('/dbRework', async (req, res) => {
+app.get('/api/dbRework', async (req, res) => {
   if (checkRequest(req)) {
     const resp = reworkDb()
     res.status(200).send("Rework finished: " + resp)
   }
 })
-app.get("/getClasses", async (req, res) => {
+app.get("/api/getClasses", async (req, res) => {
   if (checkRequest(req)) {
     let classes = await classList()
     let resp = []
@@ -59,7 +59,7 @@ app.get("/getClasses", async (req, res) => {
   }
 })
 
-app.get("/getPupilsReadinglvls", async (req, res) => {
+app.get("/api/getPupilsReadinglvls", async (req, res) => {
   if (checkRequest(req)) {
     let readinglvls = await readingLvlListPupils()
 
@@ -73,7 +73,7 @@ app.get("/getPupilsReadinglvls", async (req, res) => {
   }
 })
 
-app.get("/getMaterialssReadinglvls", async (req, res) => {
+app.get("/api/getMaterialssReadinglvls", async (req, res) => {
   if (checkRequest(req)) {
     let readinglvls = await readingLvlListMaterials()
     //res.status(200).send(await readinglvls)
@@ -119,7 +119,7 @@ const upload = multer({
 });
 
 
-app.post("/uploadimg", upload.single('uploaded_file'), (req, res) => {
+app.post("/api/uploadimg", upload.single('uploaded_file'), (req, res) => {
   try {
     console.log(req.file)
     if (!req.file) {
@@ -136,7 +136,7 @@ app.post("/uploadimg", upload.single('uploaded_file'), (req, res) => {
   }
 });
 
-app.get("/getimg/:imgid", (req, res) => {
+app.get("/api/getimg/:imgid", (req, res) => {
   if (checkRequest(req)) {
     res.status(200).sendFile(__dirname + "/uploads/" + req.params.imgid)
     // if (fs.existsSync("./uploads/" + req.params.imgid)) {
@@ -148,7 +148,7 @@ app.get("/getimg/:imgid", (req, res) => {
   else { res.status(400).send("Invalid request") }
 })
 
-app.post('/getBibInfo', async (req, res) => {
+app.post('/api/getBibInfo', async (req, res) => {
 
   try {
     const apiUrl = 'https://bibliotheek.be/catalogus?q=isbn%3A%22' + req['body']['isbn'] + '%22';
@@ -160,7 +160,7 @@ app.post('/getBibInfo', async (req, res) => {
     res.status(500).send({ error: 'Error fetching data' });
   }
 });
-app.get('/getTitelbank/:isbn', async (req, res) => {
+app.get('/api/getTitelbank/:isbn', async (req, res) => {
 
   try {
     const apiUrl = 'http://classybooks.woutvdb.uk/api/getIsbn.php?isbn=' + req['params']['isbn'];
@@ -173,7 +173,7 @@ app.get('/getTitelbank/:isbn', async (req, res) => {
     res.status(500).send({ error: 'Error fetching data: ' + error });
   }
 });
-app.post("/loginTeacher", (req, res) => {
+app.post("/api/loginTeacher", (req, res) => {
   (async () => {
     try {
       if (checkRequest(req)) {
@@ -192,7 +192,7 @@ app.post("/loginTeacher", (req, res) => {
     }
   })();
 })
-app.post("/loginPupil", (req, res) => {
+app.post("/api/loginPupil", (req, res) => {
   (async () => {
     try {
       if (checkRequest(req)) {
@@ -219,7 +219,7 @@ app.post("/loginPupil", (req, res) => {
     }
   })();
 })
-app.post("/getUser", (req, res) => {
+app.post("/api/getUser", (req, res) => {
   (async () => {
     if (checkRequest(req)) {
       // Get admin's session and requested user's details
@@ -239,7 +239,7 @@ app.post("/getUser", (req, res) => {
     else res.status(400).send("Invalid request") // Request is invalid
   })();
 })
-app.post("/createUser", (req, res) => {
+app.post("/api/createUser", (req, res) => {
   (async () => {
     try {
       if (checkRequest(req)) {
@@ -266,7 +266,7 @@ app.post("/createUser", (req, res) => {
     }
   })();
 })
-app.post("/getMaterial", (req, res) => {
+app.post("/api/getMaterial", (req, res) => {
   (async () => {
     try {
       if (checkRequest(req)) {
@@ -289,7 +289,7 @@ app.post("/getMaterial", (req, res) => {
     }
   })();
 })
-app.post("/createMaterial", (req, res) => {
+app.post("/api/createMaterial", (req, res) => {
   (async () => {
     try {
       if (checkRequest(req)) {
@@ -309,7 +309,7 @@ app.post("/createMaterial", (req, res) => {
     }
   })();
 })
-app.post("/lendMaterial", (req, res) => {
+app.post("/api/lendMaterial", (req, res) => {
   (async () => {
     try {
       if (checkRequest(req)) {
@@ -330,7 +330,7 @@ app.post("/lendMaterial", (req, res) => {
     }
   })();
 })
-app.post("/returnMaterial", (req, res) => {
+app.post("/api/returnMaterial", (req, res) => {
   (async () => {
     try {
       if (checkRequest(req)) {
@@ -351,7 +351,7 @@ app.post("/returnMaterial", (req, res) => {
     }
   })();
 })
-app.post("/allMaterials", (req, res) => {
+app.post("/api/allMaterials", (req, res) => {
   (async () => {
     try {
       // Send all materials (not all details)
@@ -364,7 +364,7 @@ app.post("/allMaterials", (req, res) => {
     }
   })();
 })
-app.post("/allUsers", (req, res) => {
+app.post("/api/allUsers", (req, res) => {
   (async () => {
     try {
       if (checkRequest(req)) {
@@ -387,7 +387,7 @@ app.post("/allUsers", (req, res) => {
     }
   })();
 })
-app.post("/removeUser", (req, res) => {
+app.post("/api/removeUser", (req, res) => {
   (async () => {
     try {
       if (checkRequest(req)) {
@@ -409,7 +409,7 @@ app.post("/removeUser", (req, res) => {
     }
   })();
 })
-app.post("/removeMaterial", (req, res) => {
+app.post("/api/removeMaterial", (req, res) => {
   (async () => {
     try {
       if (checkRequest(req)) {
@@ -431,7 +431,7 @@ app.post("/removeMaterial", (req, res) => {
     }
   })();
 })
-app.post("/changePassword", (req, res) => {
+app.post("/api/changePassword", (req, res) => {
   (async () => {
     try {
       if (checkRequest(req)) {
@@ -461,7 +461,7 @@ app.post("/changePassword", (req, res) => {
     }
   })();
 })
-app.post("/logout", (req, res) => {
+app.post("/api/logout", (req, res) => {
   (async () => {
     try {
       if (checkRequest(res)) {
@@ -478,7 +478,7 @@ app.post("/logout", (req, res) => {
   })();
 
 })
-app.post("/changeUser", (req, res) => {
+app.post("/api/changeUser", (req, res) => {
   (async () => {
     try {
       if (checkRequest(req)) {
@@ -501,7 +501,7 @@ app.post("/changeUser", (req, res) => {
   })();
 })
 
-app.post("/changeMaterial", (req, res) => {
+app.post("/api/changeMaterial", (req, res) => {
   (async () => {
     try {
       if (checkRequest(req)) {

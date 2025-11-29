@@ -46,7 +46,7 @@ function AddUser() {
       classNum: num,
       readinglevel,
     };
-    const resp = await post("/createUser", body);
+    const resp = await post("/api/createUser", body);
     if (resp.status === 200) {
       setShowToast(true);
       setToastMessage(`Gerbruiker succesvol gecreëerd.`);

@@ -25,11 +25,11 @@ const StudentLib = () => {
   const sessionid = getCookie("sessionId");
   const userid = getCookie("userId");
 
-  const books = usePost("/allMaterials", {}, "allMaterials");
-  const user = usePost("/getUser", { sessionid, userid }, userid);
+  const books = usePost("/api/allMaterials", {}, "allMaterials");
+  const user = usePost("/api/getUser", { sessionid, userid }, userid);
 
   const currentBook = usePost(
-    "/getMaterial",
+    "/api/getMaterial",
     { sessionid, materialid: user?.data?.materials?.[0] },
     user?.data?.materials?.[0]
   );
@@ -65,7 +65,7 @@ const StudentLib = () => {
 
   async function lend(materialid) {
     const userid = getCookie("userId");
-    const resp = await post("/lendMaterial", { materialid, userid });
+    const resp = await post("/api/lendMaterial", { materialid, userid });
     console.log(await resp);
     if (resp) {
       const date = new Date(await resp);
