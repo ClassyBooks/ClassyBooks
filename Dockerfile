@@ -1,4 +1,4 @@
-FROM node:20.9-alpine3.17
+FROM node:22.21-alpine3.21
 
 WORKDIR /
 
@@ -7,9 +7,9 @@ RUN npm install
 
 COPY . .
 WORKDIR /client
-RUN npm install
-RUN npm install pm2 -g
-RUN npm run build
+RUN yarn
+RUN yarn add pm2 --global
+RUN yarn build
 
 WORKDIR /
 

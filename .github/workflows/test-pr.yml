@@ -2,26 +2,47 @@ name: Pull Request CI
 
 on: pull_request
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
-  Build:
+  client_build:
     name: Build
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
 
+      - name: Enable Corepack
+        run: corepack enable
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          cache: 'npm'
+          node-version: "22"
+          cache: "yarn"
 
       - name: Install dependencies
-        run: npm install
+        run: yarn install --immutable
 
       - name: Build
-        run: npm run build
+        run: yarn build
+  
+  docker_build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Logging in to GHCR
+        run: docker login --username woutnerd --password ${{secrets.GHCR_TOKEN}} ghcr.io
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "yarn"
+
+      - name: Build docker container
+        working-directory: .
+        run: docker build -t ghcr.io/woutnerd/classybooks:pr-${{ github.event.number }} .
+      
