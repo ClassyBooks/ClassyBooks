@@ -3,7 +3,7 @@ FROM node:22.21-alpine3.21
 WORKDIR /
 
 COPY package*.json ./
-RUN npm install
+RUN yarn
 
 COPY . .
 WORKDIR /client
