@@ -4,8 +4,7 @@ import TeacherNavbar from '../teacher/teacherNavbar';
 import { getCookie, getISBN, post, Toast } from "../../functions";
 import crypto from "crypto-js";
 import subtractObject from "subtract-object";
-import * as XLSX from "xlsx";
-
+import ExcelJS from 'exceljs';
 
 
 const gebruikers = [``, `Voornaam`, `Achternaam`, `Wachtwoord`, `Klas`, `Nummer`, `Leesniveau`, `Gebruikerstype`]
@@ -50,21 +49,34 @@ const JsonImport = () => {
         let url = URL.createObjectURL(selectedFile)
 
         if (selectedFile.type === `application/json`) {
-
-
             fetchData(url)
         } else if (selectedFile.type === `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet` || `application/vnd.ms-excel` || `.csv`) {
 
             const reader = new FileReader();
-            reader.onload = (e) => {
-                const data = e.target.result;
-                const workbook = XLSX.read(data, { type: "binary" });
-                const sheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[sheetName];
-                const json = XLSX.utils.sheet_to_json(worksheet);
-                setData(json);
+            reader.onload = async (e) => {
+                const arrayBuffer = e.target.result;
+
+                const workbook = new ExcelJS.Workbook();
+                await workbook.xlsx.load(arrayBuffer);
+
+                const worksheet = workbook.worksheets[0];
+
+                const rows = [];
+                const header = worksheet.getRow(1).values.slice(1);
+
+                worksheet.eachRow((row, rowNumber) => {
+                    if (rowNumber === 1) return; 
+                    const data = {};
+                    row.values.slice(1).forEach((cell, i) => {
+                        data[header[i]] = cell;
+                    });
+                    rows.push(data);
+                });
+
+                setData(rows);
             };
-            reader.readAsBinaryString(selectedFile);
+
+            reader.readAsArrayBuffer(selectedFile);
 
 
 
