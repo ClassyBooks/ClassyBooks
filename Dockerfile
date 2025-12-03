@@ -8,7 +8,7 @@ RUN yarn
 COPY . .
 WORKDIR /client
 RUN yarn
-RUN yarn add pm2 --global
+RUN yarn global add pm2
 RUN yarn build
 
 WORKDIR /
