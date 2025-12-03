@@ -13,6 +13,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.4.2",
+    "read-excel-file": "^6.0.1",
     "subtract-object": "^1.1.0"
   },
   "scripts": {
@@ -33,6 +34,7 @@
     ]
   },
   "devDependencies": {
+    "@types/react": "^19.2.7",
     "@vitejs/plugin-react": "^5.1.1",
     "vite": "^7.2.4"
   }

@@ -4,7 +4,7 @@ import TeacherNavbar from '../teacher/teacherNavbar';
 import { getCookie, getISBN, post, Toast } from "../../functions";
 import crypto from "crypto-js";
 import subtractObject from "subtract-object";
-import ExcelJS from 'exceljs';
+import readXlsxFile from "read-excel-file";
 
 
 const gebruikers = [``, `Voornaam`, `Achternaam`, `Wachtwoord`, `Klas`, `Nummer`, `Leesniveau`, `Gebruikerstype`]
@@ -43,35 +43,27 @@ const JsonImport = () => {
         if (selectedFile.type === `application/json`) {
             fetchData(url)
         } else if (selectedFile.type === `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet` || `application/vnd.ms-excel` || `.csv`) {
-
             const reader = new FileReader();
+
             reader.onload = async (e) => {
-                const arrayBuffer = e.target.result;
+                const fileData = e.target.result;
 
-                const workbook = new ExcelJS.Workbook();
-                await workbook.xlsx.load(arrayBuffer);
+                const rows = await readXlsxFile(fileData);
 
-                const worksheet = workbook.worksheets[0];
+                const [header, ...dataRows] = rows;
 
-                const rows = [];
-                const header = worksheet.getRow(1).values.slice(1);
-
-                worksheet.eachRow((row, rowNumber) => {
-                    if (rowNumber === 1) return; 
-                    const data = {};
-                    row.values.slice(1).forEach((cell, i) => {
-                        data[header[i]] = cell;
+                const json = dataRows.map(row => {
+                    const obj = {};
+                    row.forEach((cell, i) => {
+                        obj[header[i]] = cell;
                     });
-                    rows.push(data);
+                    return obj;
                 });
 
-                setData(rows);
+                setData(json);
             };
 
             reader.readAsArrayBuffer(selectedFile);
-
-
-
         }
     }
 
