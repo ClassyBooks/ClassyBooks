@@ -21,6 +21,14 @@ const JsonImport = () => {
     const [toastMessage, setToastMessage] = useState(``)
     const [toastType, setToastType] = useState(``)
 
+    async function batchRequests(items, batchSize, handler) {
+        for (let i = 0; i < items.length; i += batchSize) {
+            const batch = items.slice(i, i + batchSize);
+
+            // Wacht tot álle requests in de batch klaar zijn
+            await Promise.all(batch.map(handler));
+        }
+    }
 
     async function fetchData(url) {
         try {
@@ -121,158 +129,115 @@ const JsonImport = () => {
     }
 
     async function handleSubmitU() {
-        const e0 = document.getElementById('0')?.value
-        const e1 = document.getElementById('1')?.value
-        const e2 = document.getElementById('2')?.value
-        const e3 = document.getElementById('3')?.value
-        const e4 = document.getElementById('4')?.value
-        const e5 = document.getElementById('5')?.value
-        const e6 = document.getElementById('6')?.value
+        const fieldMap = Array.from({ length: 7 }, (_, i) => document.getElementById(String(i))?.value);
+        const sessionid = getCookie(`sessionId`);
 
-        const sessionid = getCookie(`sessionId`)
+        async function handleSingleUser(element) {
+            const values = Object.values(element);
+            let pass = "";
+            let body = { sessionid, name: ``, surname: ``, sha256: ``, md5: ``, privilege: ``, cls: ``, classNum: ``, readinglevel: `` };
 
-        for (let i = 0; i < data.length; i++) {
-            const element = Object.values(data[i]);
+            values.forEach((val, idx) => {
+                const field = fieldMap[idx];
+                if (!field) return;
 
-            let pass
-            let body = { sessionid, name: ``, surname: ``, sha256: ``, md5: ``, privilege: ``, cls: ``, classNum: ``, readinglevel: `` }
-            if (e0 === `Voornaam`) body.name = element[0]
-            if (e0 === `Achternaam`) body.surname = element[0]
-            if (e0 === `Wachtwoord`) pass = element[0]
-            if (e0 === `Klas`) body.cls = element[0]
-            if (e0 === `Nummer`) body.classNum = element[0]
-            if (e0 === `Leesniveau`) body.readinglevel = element[0]
-            if (e0 === `Gebruikerstype`) body.privilege = element[0]
+                if (field === `Voornaam`) body.name = val;
+                if (field === `Achternaam`) body.surname = val;
+                if (field === `Wachtwoord`) pass = val;
+                if (field === `Klas`) body.cls = val;
+                if (field === `Nummer`) body.classNum = val;
+                if (field === `Leesniveau`) body.readinglevel = val;
+                if (field === `Gebruikerstype`) body.privilege = val;
+            });
 
-            if (e1 === `Voornaam`) body.name = element[1]
-            if (e1 === `Achternaam`) body.surname = element[1]
-            if (e1 === `Wachtwoord`) pass = element[1]
-            if (e1 === `Klas`) body.cls = element[1]
-            if (e1 === `Nummer`) body.classNum = element[1]
-            if (e1 === `Leesniveau`) body.readinglevel = element[1]
-            if (e1 === `Gebruikerstype`) body.privilege = element[1]
-
-            if (e2 === `Voornaam`) body.name = element[2]
-            if (e2 === `Achternaam`) body.surname = element[2]
-            if (e2 === `Wachtwoord`) pass = element[2]
-            if (e2 === `Klas`) body.cls = element[2]
-            if (e2 === `Nummer`) body.classNum = element[2]
-            if (e2 === `Leesniveau`) body.readinglevel = element[2]
-            if (e2 === `Gebruikerstype`) body.privilege = element[2]
-
-            if (e3 === `Voornaam`) body.name = element[3]
-            if (e3 === `Achternaam`) body.surname = element[3]
-            if (e3 === `Wachtwoord`) pass = element[3]
-            if (e3 === `Klas`) body.cls = element[3]
-            if (e3 === `Nummer`) body.classNum = element[3]
-            if (e3 === `Leesniveau`) body.readinglevel = element[3]
-            if (e3 === `Gebruikerstype`) body.privilege = element[3]
-
-            if (e4 === `Voornaam`) body.name = element[4]
-            if (e4 === `Achternaam`) body.surname = element[4]
-            if (e4 === `Wachtwoord`) pass = element[4]
-            if (e4 === `Klas`) body.cls = element[4]
-            if (e4 === `Nummer`) body.classNum = element[4]
-            if (e4 === `Leesniveau`) body.readinglevel = element[4]
-            if (e4 === `Gebruikerstype`) body.privilege = element[4]
-
-            if (e5 === `Voornaam`) body.name = element[5]
-            if (e5 === `Achternaam`) body.surname = element[5]
-            if (e5 === `Wachtwoord`) pass = element[5]
-            if (e5 === `Klas`) body.cls = element[5]
-            if (e5 === `Nummer`) body.classNum = element[5]
-            if (e5 === `Leesniveau`) body.readinglevel = element[5]
-            if (e5 === `Gebruikerstype`) body.privilege = element[5]
-
-            if (e6 === `Voornaam`) body.name = element[6]
-            if (e6 === `Achternaam`) body.surname = element[6]
-            if (e6 === `Wachtwoord`) pass = element[6]
-            if (e6 === `Klas`) body.cls = element[6]
-            if (e6 === `Nummer`) body.classNum = element[6]
-            if (e6 === `Leesniveau`) body.readinglevel = element[6]
-            if (e6 === `Gebruikerstype`) body.privilege = element[6]
-
+            // hashes
             if (body.privilege === 0) {
-                body.sha256 = crypto.SHA256(body.cls + body.classNum + pass).toString()
-                body.md5 = crypto.MD5(body.cls + body.classNum + pass + body.sha256).toString()
+                body.sha256 = crypto.SHA256(body.cls + body.classNum + pass).toString();
+                body.md5 = crypto.MD5(body.cls + body.classNum + pass + body.sha256).toString();
             } else {
-                body.sha256 = crypto.SHA256(body.name + body.surname + pass).toString()
-                body.md5 = crypto.MD5(body.name + body.surname + pass + body.sha256).toString()
+                body.sha256 = crypto.SHA256(body.name + body.surname + pass).toString();
+                body.md5 = crypto.MD5(body.name + body.surname + pass + body.sha256).toString();
             }
-            body.classNum = parseInt(body.classNum)
-            body.privilege = parseInt(body.privilege)
-            await post('/api/createUser', body)
+
+            body.classNum = parseInt(body.classNum);
+            body.privilege = parseInt(body.privilege);
+
+            return post('/api/createUser', body);
         }
 
-        setShowToast(true)
-        setToastMessage(`Gebruikers toegevoegd`)
-        setToastType(`info`)
+        await batchRequests(data, 10, handleSingleUser); // <-- batching hier
 
+        setShowToast(true);
+        setToastMessage(`Gebruikers toegevoegd`);
+        setToastType(`info`);
     }
+
 
     async function handleSubmitM() {
+        const sessionid = getCookie(`sessionId`);
+        const keys = getAllKeys(data).length;
 
-        const sessionid = getCookie(`sessionId`)
+        async function handleSingleMaterial(element) {
+            const values = Object.values(element);
+            let Bvin;
+            let body = { sessionid, description: {}, available: 1 };
 
-
-        for (let i = 0; i < data.length; i++) {
-            const element = Object.values(data[i]);
-            let Bvin
-            let body = { sessionid, description: {} }
-
-            const keys = getAllKeys(data).length
-
-            //gets all info it can get
             for (let i = 0; i < keys; i++) {
-                const e = document.getElementById(i)?.value
-                if (e === `ISBN`) body.isbn = element[i]
-                if (e === `Booksource id`) Bvin = element[i]
+                const field = document.getElementById(i)?.value;
+                if (!field) continue;
 
+                if (field === `ISBN`) body.isbn = values[i];
+                if (field === `Booksource id`) Bvin = values[i];
             }
-            body.available = 1
 
             if (Bvin != null) {
-                body.description.cover = (`https://classroom.booksource.com/Classroom/DisplayCustomImage.aspx?BC2019=true&img=` + Bvin + `&classid=be221081-74ac-4fdf-af8c-5802f9e38e5e`)
+                body.description.cover =
+                    `https://classroom.booksource.com/Classroom/DisplayCustomImage.aspx?BC2019=true&img=${Bvin}&classid=be221081-74ac-4fdf-af8c-5802f9e38e5e`;
             }
 
-            const response = await getISBN(body.isbn)
-            console.log(!!response)
-            if (!!response) {
-                body.title = response.title
-                body.description.author = await response.authors?.toString()
-                body.description.pages = response.pageCount
+            // automatisch aanvullen via ISBN
+            const response = await getISBN(body.isbn);
+            if (response) {
+                body.title = response.title;
+                body.description.author = response.authors?.toString();
+                body.description.pages = response.pageCount;
             }
 
-            //replaces hardcoded info
+            // overrides vanuit import
             for (let i = 0; i < keys; i++) {
-                const e = document.getElementById(i)?.value
-                if (e === `Titel`) body.title = element[i]
-                if (e === `Locatie`) body.place = element[i]
-                if (e === `Auteur`) body.description.author = element[i]
-                if (e === `Url naar afbeelding cover`) body.description.cover = element[i]
-                if (e === `Aantal pagina's`) body.description.pages = parseInt(element[i])
-                if (e === `Leesniveau`) body.description.readinglevel = element[i]
+                const field = document.getElementById(i)?.value;
+
+                if (!field) continue;
+
+                if (field === `Titel`) body.title = values[i];
+                if (field === `Locatie`) body.place = values[i];
+                if (field === `Auteur`) body.description.author = values[i];
+                if (field === `Url naar afbeelding cover`) body.description.cover = values[i];
+                if (field === `Aantal pagina's`) body.description.pages = parseInt(values[i]);
+                if (field === `Leesniveau`) body.description.readinglevel = values[i];
             }
-            console.log(body)
-            console.log(await post('/api/createMaterial', body))
+
+            return post('/api/createMaterial', body);
         }
 
-        setShowToast(true)
-        setToastMessage(`Boeken toegevoegd`)
-        setToastType(`info`)
+        await batchRequests(data, 10, handleSingleMaterial); // <-- batching hier
 
+        setShowToast(true);
+        setToastMessage(`Boeken toegevoegd`);
+        setToastType(`info`);
     }
+
 
     return (
         <div>
             {showToast && (
-        <Toast
-          message={toastMessage}
-          type={toastType}
-          duration={3000}
-          onClose={() =>setShowToast(false)}
-        />
-      )}
+                <Toast
+                    message={toastMessage}
+                    type={toastType}
+                    duration={3000}
+                    onClose={() => setShowToast(false)}
+                />
+            )}
             <nav><TeacherNavbar /></nav>
             <div>
                 <select name="type" id="type" onChange={handleType} value={dataType}>
