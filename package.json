@@ -20,6 +20,9 @@
   },
   "homepage": "https://github.com/JasperDG828/classybooks#readme",
   "dependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.0.2",
+    "cookie-parser": "^1.4.7",
     "dotenv": "^16.4.7",
     "express": "^4.18.2",
     "multer": "^2.0.2",
