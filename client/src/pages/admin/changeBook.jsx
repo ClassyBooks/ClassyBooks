@@ -8,6 +8,8 @@ const ChangeMaterial = () => {
   const [material, setMaterial] = useState(null);
   const [isChecked, setIsChecked] = useState(false);
   const [isbn, setIsbn] = useState("");
+  const [cover, setCover] = useState(``);
+
 
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
@@ -54,6 +56,31 @@ const ChangeMaterial = () => {
     setIsbn(decoded);
   }
 
+async function handleImg(e) {
+  e.preventDefault();
+
+  const form = document.forms[0];
+  const uploaded_img = form.elements["uploaded_file"];
+
+  if (!uploaded_img || !uploaded_img.files.length) {
+    alert("Selecteer eerst een afbeelding");
+    return;
+  }
+
+  const data = new FormData();
+  data.append("uploaded_file", uploaded_img.files[0]);
+
+  let resp = await fetch("/api/uploadimg", {
+    method: "POST",
+    body: data,
+  });
+
+  resp = await resp.text();
+  setCover(resp);
+  handleChange("cover", resp);
+}
+
+
   async function handleChange(key, value) {
     let keys = [key];
     let values = [value];
@@ -83,7 +110,7 @@ const ChangeMaterial = () => {
     };
 
     const resp = await mutateAsync({
-      url: "/changeMaterial",
+      url: "/api/changeMaterial",
       body,
       key: "changeMaterial",
     });
@@ -166,7 +193,7 @@ const ChangeMaterial = () => {
           <br />
 
           <input
-            type="url"
+            type="hidden"
             name="cover"
             placeholder="Url van de cover"
             className="login"
@@ -179,6 +206,28 @@ const ChangeMaterial = () => {
             }}
           />
           <br />
+          <input
+            type="file"
+            name="uploaded_file"
+            accept=".png, .jpg, .jpeg, .gif, .bmp, .tif"
+          />
+          <button type="button" onClick={(e) => handleImg(e)}>
+            Cover uploaden
+          </button>
+          <input
+            type="url"
+            style={{ visibility: "hidden" }}
+            name="cover"
+            placeholder="Url van de cover"
+            className="login"
+            value={cover}
+            onInput={(e) => setCover(e.target.value)}
+          />
+          <br />
+          <img src={cover} alt="" className="cover bookitem" />
+          <br />
+
+
 
           <input
             type="number"
