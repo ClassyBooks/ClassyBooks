@@ -129,7 +129,7 @@ app.post("/api/uploadimg", upload.single('uploaded_file'), (req, res) => {
       fs.unlink("./uploads/badfile", (err) => { console.log(err) })
       res.status(400).send("Invalid file, use an image format")
     } else {
-      res.status(200).send("/getimg/" + req.file.filename);
+      res.status(200).send("/api/getimg/" + req.file.filename);
     }
   } catch (error) {
     res.status(500).send("Internal server error");
