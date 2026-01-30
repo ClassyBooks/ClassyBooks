@@ -1579,10 +1579,10 @@ react@^19.2.4:
   resolved "https://registry.yarnpkg.com/react/-/react-19.2.4.tgz#438e57baa19b77cb23aab516cf635cd0579ee09a"
   integrity sha512-9nfp2hYpCwOjAN+8TZFGhtWEwgvWHXqESH8qT89AT/lWklpLON22Lc8pEtnpsZz7VmawabSU0gCjnj8aC0euHQ==
 
-read-excel-file@^6.0.1:
-  version "6.0.1"
-  resolved "https://registry.yarnpkg.com/read-excel-file/-/read-excel-file-6.0.1.tgz#ef2e51f579d387b20b69e39ef9d4d58de8cc8fa4"
-  integrity sha512-rH6huBFxsjZsUARCYh55O08cn1gqZH8bnLf0kI6y5K7+9yqBVzy8veO4gPV4VGKv4M9rdcRtXTDGZZNwPi1gDA==
+read-excel-file@^6.0.3:
+  version "6.0.3"
+  resolved "https://registry.yarnpkg.com/read-excel-file/-/read-excel-file-6.0.3.tgz#f5ed07f4b421997806cf5095f56574c71c9367f4"
+  integrity sha512-RArrv7WzTHuYIRlBJEZV+JJOHPX5VaWtcDqO9KCprvePmqrPu4gjr+EtTTXkIm08LAHkjRFSn7yFAlFfCHHKuw==
   dependencies:
     "@xmldom/xmldom" "^0.8.11"
     fflate "^0.8.2"
